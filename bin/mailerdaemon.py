@@ -97,10 +97,7 @@ emparse_list_from = re.compile('^From:', re.IGNORECASE|re.MULTILINE)
 def emparse_list(fp, sub):
     data = fp.read()
     res = emparse_list_from.search(data)
-    if res is None:
-        from_index = len(data)
-    else:
-        from_index = res.start(0)
+    from_index = len(data) if res is None else res.start(0)
     errors = []
     emails = []
     reason = None
@@ -140,15 +137,16 @@ def emparse_list(fp, sub):
                     exp = re.compile(re.escape(email).join(regexp.split('<>')), re.MULTILINE)
                     res = exp.search(data)
                     if res is not None:
-                        errors.append(' '.join((email.strip()+': '+res.group('reason')).split()))
+                        errors.append(' '.join((f'{email.strip()}: ' + res['reason']).split()))
                         del emails[i]
                 continue
             res = regexp.search(data)
             if res is not None:
                 reason = res.group('reason')
                 break
-    for email in emails:
-        errors.append(' '.join((email.strip()+': '+reason).split()))
+    errors.extend(
+        ' '.join(f'{email.strip()}: {reason}'.split()) for email in emails
+    )
     return errors
 
 EMPARSERS = [emparse_list]
@@ -176,57 +174,56 @@ def parsedir(dir, modify):
     files.sort(sort_numeric)
 
     for fn in files:
-        # Lets try to parse the file.
-        fp = open(fn)
-        m = email.message_from_file(fp, _class=ErrorMessage)
-        sender = m.getaddr('From')
-        print('%s\t%-40s\t'%(fn, sender[1]), end=' ')
+        with open(fn) as fp:
+            m = email.message_from_file(fp, _class=ErrorMessage)
+            sender = m.getaddr('From')
+            print('%s\t%-40s\t'%(fn, sender[1]), end=' ')
 
-        if m.is_warning():
-            fp.close()
-            print('warning only')
-            nwarn = nwarn + 1
-            if modify:
-                os.rename(fn, ','+fn)
+            if m.is_warning():
+                fp.close()
+                print('warning only')
+                nwarn = nwarn + 1
+                if modify:
+                    os.rename(fn, f',{fn}')
 ##              os.unlink(fn)
-            continue
+                continue
 
-        try:
-            errors = m.get_errors()
-        except Unparseable:
-            print('** Not parseable')
-            nbad = nbad + 1
-            fp.close()
-            continue
-        print(len(errors), 'errors')
-
-        # Remember them
-        for e in errors:
             try:
-                mm, dd = m.getdate('date')[1:1+2]
-                date = '%s %02d' % (calendar.month_abbr[mm], dd)
-            except:
-                date = '??????'
-            if e not in errordict:
-                errordict[e] = 1
-                errorfirst[e] = '%s (%s)' % (fn, date)
-            else:
-                errordict[e] = errordict[e] + 1
-            errorlast[e] = '%s (%s)' % (fn, date)
+                errors = m.get_errors()
+            except Unparseable:
+                print('** Not parseable')
+                nbad = nbad + 1
+                fp.close()
+                continue
+            print(len(errors), 'errors')
 
-        fp.close()
+                    # Remember them
+            for e in errors:
+                try:
+                    mm, dd = m.getdate('date')[1:1+2]
+                    date = '%s %02d' % (calendar.month_abbr[mm], dd)
+                except:
+                    date = '??????'
+                if e not in errordict:
+                    errordict[e] = 1
+                    errorfirst[e] = f'{fn} ({date})'
+                else:
+                    errordict[e] = errordict[e] + 1
+                errorlast[e] = f'{fn} ({date})'
+
         nok = nok + 1
         if modify:
-            os.rename(fn, ','+fn)
+            os.rename(fn, f',{fn}')
 ##          os.unlink(fn)
 
     print('--------------')
     print(nok, 'files parsed,',nwarn,'files warning-only,', end=' ')
     print(nbad,'files unparseable')
     print('--------------')
-    list = []
-    for e in errordict.keys():
-        list.append((errordict[e], errorfirst[e], errorlast[e], e))
+    list = [
+        (value, errorfirst[e], errorlast[e], e)
+        for e, value in errordict.items()
+    ]
     list.sort()
     for num, first, last, e in list:
         print('%d %s - %s\t%s' % (num, first, last, e))

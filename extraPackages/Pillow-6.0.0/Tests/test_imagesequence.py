@@ -65,7 +65,7 @@ class TestImageSequence(PillowTestCase):
     def test_palette_mmap(self):
         # Using mmap in ImageFile can require to reload the palette.
         im = Image.open('Tests/images/multipage-mmap.tiff')
-        color1 = im.getpalette()[0:3]
+        color1 = im.getpalette()[:3]
         im.seek(0)
-        color2 = im.getpalette()[0:3]
+        color2 = im.getpalette()[:3]
         self.assertEqual(color1, color2)

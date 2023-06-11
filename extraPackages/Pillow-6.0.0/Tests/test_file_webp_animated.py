@@ -89,8 +89,8 @@ class TestFileWebpAnimation(PillowTestCase):
 
         # Tests appending using a generator
         def imGenerator(ims):
-            for im in ims:
-                yield im
+            yield from ims
+
         temp_file2 = self.tempfile("temp_generator.webp")
         frame1.copy().save(temp_file2,
                            save_all=True, append_images=imGenerator([frame2]),

@@ -15,10 +15,7 @@ class TestImagePalette(PillowTestCase):
 
         palette = ImagePalette.ImagePalette()
 
-        test_map = {}
-        for i in range(256):
-            test_map[palette.getcolor((i, i, i))] = i
-
+        test_map = {palette.getcolor((i, i, i)): i for i in range(256)}
         self.assertEqual(len(test_map), 256)
         self.assertRaises(ValueError, palette.getcolor, (1, 2, 3))
 

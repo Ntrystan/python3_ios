@@ -77,10 +77,7 @@ class TestImagingCoreResampleAccuracy(PillowTestCase):
         for y in range(case.size[1]):
             for x in range(case.size[0]):
                 if c_px[x, y] != s_px[x, y]:
-                    message = '\nHave: \n{}\n\nExpected: \n{}'.format(
-                        self.serialize_image(case),
-                        self.serialize_image(sample),
-                    )
+                    message = f'\nHave: \n{self.serialize_image(case)}\n\nExpected: \n{self.serialize_image(sample)}'
                     self.assertEqual(s_px[x, y], c_px[x, y], message)
 
     def serialize_image(self, image):
@@ -204,8 +201,7 @@ class CoreResampleConsistencyTest(PillowTestCase):
         for x in range(channel.size[0]):
             for y in range(channel.size[1]):
                 if px[x, y] != color:
-                    message = "{} != {} for pixel {}".format(
-                        px[x, y], color, (x, y))
+                    message = f"{px[x, y]} != {color} for pixel {(x, y)}"
                     self.assertEqual(px[x, y], color, message)
 
     def test_8u(self):
@@ -244,9 +240,11 @@ class CoreResampleAlphaCorrectTest(PillowTestCase):
         px = i.load()
         for y in range(i.size[1]):
             used_colors = {px[x, y][0] for x in range(i.size[0])}
-            self.assertEqual(256, len(used_colors),
-                             'All colors should present in resized image. '
-                             'Only {} on {} line.'.format(len(used_colors), y))
+            self.assertEqual(
+                256,
+                len(used_colors),
+                f'All colors should present in resized image. Only {len(used_colors)} on {y} line.',
+            )
 
     @unittest.skip("current implementation isn't precise enough")
     def test_levels_rgba(self):
@@ -281,8 +279,7 @@ class CoreResampleAlphaCorrectTest(PillowTestCase):
         for y in range(i.size[1]):
             for x in range(i.size[0]):
                 if px[x, y][-1] != 0 and px[x, y][:-1] != clean_pixel:
-                    message = 'pixel at ({}, {}) is differ:\n{}\n{}'\
-                        .format(x, y, px[x, y], clean_pixel)
+                    message = f'pixel at ({x}, {y}) is differ:\n{px[x, y]}\n{clean_pixel}'
                     self.assertEqual(px[x, y][:3], clean_pixel, message)
 
     def test_dirty_pixels_rgba(self):

@@ -10,7 +10,7 @@ sys.path.insert(0, ".")
 for file in glob.glob("src/PIL/*.py"):
     module = os.path.basename(file)[:-3]
     try:
-        exec("from PIL import " + module)
+        exec(f"from PIL import {module}")
     except (ImportError, SyntaxError):
         print("===", "failed to import", module)
         traceback.print_exc()

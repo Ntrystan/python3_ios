@@ -13,9 +13,9 @@ IMAGES_PATH = os.path.join('Tests', 'images', 'imagedraw')
 W, H = 100, 100
 
 # Bounding box points
-X0 = int(W / 4)
+X0 = W // 4
 X1 = int(X0 * 3)
-Y0 = int(H / 4)
+Y0 = H // 4
 Y1 = int(X0 * 3)
 
 # Two kinds of bounding box
@@ -143,7 +143,7 @@ class TestImageDraw(PillowTestCase):
         # Arrange
         im = Image.new(mode, (W, H))
         draw = ImageDraw.Draw(im)
-        expected = "Tests/images/imagedraw_chord_{}.png".format(mode)
+        expected = f"Tests/images/imagedraw_chord_{mode}.png"
 
         # Act
         draw.chord(bbox, start, end, fill="red", outline="yellow")
@@ -189,7 +189,7 @@ class TestImageDraw(PillowTestCase):
         # Arrange
         im = Image.new(mode, (W, H))
         draw = ImageDraw.Draw(im)
-        expected = "Tests/images/imagedraw_ellipse_{}.png".format(mode)
+        expected = f"Tests/images/imagedraw_ellipse_{mode}.png"
 
         # Act
         draw.ellipse(bbox, fill="green", outline="blue")
@@ -398,8 +398,7 @@ class TestImageDraw(PillowTestCase):
             # Arrange
             im = Image.new(mode, (W, H))
             draw = ImageDraw.Draw(im)
-            expected = "Tests/images/imagedraw_polygon_kite_{}.png".format(
-                mode)
+            expected = f"Tests/images/imagedraw_polygon_kite_{mode}.png"
 
             # Act
             draw.polygon(KITE_POINTS, fill="blue", outline="yellow")
@@ -481,7 +480,7 @@ class TestImageDraw(PillowTestCase):
             ImageDraw.floodfill(im, centre_point, value)
 
             # Assert
-            expected = "Tests/images/imagedraw_floodfill_"+mode+".png"
+            expected = f"Tests/images/imagedraw_floodfill_{mode}.png"
             im_floodfill = Image.open(expected)
             self.assert_image_equal(im, im_floodfill)
 
@@ -759,6 +758,5 @@ class TestImageDraw(PillowTestCase):
                     draw_method(*args)
 
                     # Assert
-                    expected = ("Tests/images/imagedraw_outline"
-                                "_{}_{}.png".format(operation, mode))
+                    expected = f"Tests/images/imagedraw_outline_{operation}_{mode}.png"
                     self.assert_image_similar(im, Image.open(expected), 1)

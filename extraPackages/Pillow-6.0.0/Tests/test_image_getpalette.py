@@ -6,9 +6,8 @@ class TestImageGetPalette(PillowTestCase):
     def test_palette(self):
         def palette(mode):
             p = hopper(mode).getpalette()
-            if p:
-                return p[:10]
-            return None
+            return p[:10] if p else None
+
         self.assertIsNone(palette("1"))
         self.assertIsNone(palette("L"))
         self.assertIsNone(palette("I"))

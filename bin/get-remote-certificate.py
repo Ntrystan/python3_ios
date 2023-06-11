@@ -12,7 +12,7 @@ import sys
 import tempfile
 
 
-def fetch_server_certificate (host, port):
+def fetch_server_certificate(host, port):
 
     def subproc(cmd):
         from subprocess import Popen, PIPE, STDOUT
@@ -27,48 +27,42 @@ def fetch_server_certificate (host, port):
                       certfile_contents, re.MULTILINE | re.DOTALL)
         if not m:
             return None
-        else:
-            tn = tempfile.mktemp()
-            fp = open(tn, "wb")
-            fp.write(m.group(1) + b"\n")
-            fp.close()
-            try:
-                tn2 = (outfile or tempfile.mktemp())
-                status, output = subproc(r'openssl x509 -in "%s" -out "%s"' %
-                                         (tn, tn2))
-                if status != 0:
-                    raise RuntimeError('OpenSSL x509 failed with status %s and '
-                                       'output: %r' % (status, output))
-                fp = open(tn2, 'rb')
+        tn = tempfile.mktemp()
+        with open(tn, "wb") as fp:
+            fp.write(m[1] + b"\n")
+        try:
+            tn2 = (outfile or tempfile.mktemp())
+            status, output = subproc(f'openssl x509 -in "{tn}" -out "{tn2}"')
+            if status != 0:
+                raise RuntimeError('OpenSSL x509 failed with status %s and '
+                                   'output: %r' % (status, output))
+            with open(tn2, 'rb') as fp:
                 data = fp.read()
-                fp.close()
-                os.unlink(tn2)
-                return data
-            finally:
-                os.unlink(tn)
+            os.unlink(tn2)
+            return data
+        finally:
+            os.unlink(tn)
 
     if sys.platform.startswith("win"):
         tfile = tempfile.mktemp()
-        fp = open(tfile, "w")
-        fp.write("quit\n")
-        fp.close()
+        with open(tfile, "w") as fp:
+            fp.write("quit\n")
         try:
             status, output = subproc(
-                'openssl s_client -connect "%s:%s" -showcerts < "%s"' %
-                (host, port, tfile))
+                f'openssl s_client -connect "{host}:{port}" -showcerts < "{tfile}"'
+            )
         finally:
             os.unlink(tfile)
     else:
         status, output = subproc(
-            'openssl s_client -connect "%s:%s" -showcerts < /dev/null' %
-            (host, port))
+            f'openssl s_client -connect "{host}:{port}" -showcerts < /dev/null'
+        )
     if status != 0:
         raise RuntimeError('OpenSSL connect failed with status %s and '
                            'output: %r' % (status, output))
     certtext = strip_to_x509_cert(output)
     if not certtext:
-        raise ValueError("Invalid response received from server at %s:%s" %
-                         (host, port))
+        raise ValueError(f"Invalid response received from server at {host}:{port}")
     return certtext
 
 

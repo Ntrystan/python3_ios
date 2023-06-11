@@ -30,8 +30,8 @@ class TestFileTiffMetadata(PillowTestCase):
 
         basetextdata = "This is some arbitrary metadata for a text field"
         bindata = basetextdata.encode('ascii') + b" \xff"
-        textdata = basetextdata + " " + chr(255)
-        reloaded_textdata = basetextdata + " ?"
+        textdata = f"{basetextdata} {chr(255)}"
+        reloaded_textdata = f"{basetextdata} ?"
         floatdata = 12.345
         doubledata = 67.89
         info = TiffImagePlugin.ImageFileDirectory()
@@ -149,20 +149,21 @@ class TestFileTiffMetadata(PillowTestCase):
                and isinstance(original[tag][0], IFDRational)):
                 # Need to compare element by element in the tuple,
                 # not comparing tuples of object references
-                self.assert_deep_equal(original[tag],
-                                       value,
-                                       "%s didn't roundtrip, %s, %s" %
-                                       (tag, original[tag], value))
+                self.assert_deep_equal(
+                    original[tag],
+                    value,
+                    f"{tag} didn't roundtrip, {original[tag]}, {value}",
+                )
             else:
-                self.assertEqual(original[tag],
-                                 value,
-                                 "%s didn't roundtrip, %s, %s" %
-                                 (tag, original[tag], value))
+                self.assertEqual(
+                    original[tag],
+                    value,
+                    f"{tag} didn't roundtrip, {original[tag]}, {value}",
+                )
 
         for tag, value in original.items():
             if tag not in ignored:
-                self.assertEqual(
-                    value, reloaded[tag], "%s didn't roundtrip" % tag)
+                self.assertEqual(value, reloaded[tag], f"{tag} didn't roundtrip")
 
     def test_no_duplicate_50741_tag(self):
         self.assertEqual(tag_ids['MakerNoteSafety'], 50741)

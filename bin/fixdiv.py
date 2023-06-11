@@ -192,7 +192,7 @@ def readwarnings(warningsfile):
         m = prog.match(line)
         if not m:
             if line.find("division") >= 0:
-                sys.stderr.write("Warning: ignored input " + line)
+                sys.stderr.write(f"Warning: ignored input {line}")
             continue
         filename, lineno, what = m.groups()
         list = warnings.get(filename)
@@ -234,7 +234,7 @@ def process(filename, list):
             pass
         elif slashes and not warnings:
             report(slashes, "No conclusive evidence")
-        elif warnings and not slashes:
+        elif not slashes:
             reportphantomwarnings(warnings, f)
         else:
             if len(slashes) > 1:
@@ -279,11 +279,11 @@ def process(filename, list):
                     print("%dc%d" % (row, row))
                     print("<", line)
                     print("---")
-                    print(">", line[:col] + "/" + line[col:])
+                    print(">", f"{line[:col]}/{line[col:]}")
                 elif floatcomplex and not intlong:
                     print("True division / operator at line %d:" % row)
                     print("=", line)
-                elif intlong and floatcomplex:
+                elif intlong:
                     print("*** Ambiguous / operator (%s, %s) at line %d:" % (
                         "|".join(intlong), "|".join(floatcomplex), row))
                     print("?", line)
@@ -347,7 +347,7 @@ class FileContext:
     def report(self, first, last=None, mark="*"):
         if last is None:
             last = first
-        for i in range(first, last+1):
+        for _ in range(first, last+1):
             try:
                 line = self[first]
             except KeyError:
@@ -369,10 +369,7 @@ def scanline(g):
     return startlineno, endlineno, slashes
 
 def chop(line):
-    if line.endswith("\n"):
-        return line[:-1]
-    else:
-        return line
+    return line[:-1] if line.endswith("\n") else line
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -42,8 +42,7 @@ def treat_file(filename):
         line = fp.readline()
         if not line:
             break
-        m = matcher.match(line)
-        if m:
+        if m := matcher.match(line):
             content = m.group(0)
             name = m.group(2)
             s = name + '\t' + filename + '\t/^' + content + '/\n'

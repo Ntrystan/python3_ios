@@ -95,8 +95,7 @@ class TestFileMpo(PillowTestCase):
         for test_file in test_files:
             im = Image.open(test_file)
             mpinfo = im._getmp()
-            frameNumber = 0
-            for mpentry in mpinfo[45058]:
+            for frameNumber, mpentry in enumerate(mpinfo[45058]):
                 mpattr = mpentry['Attribute']
                 if frameNumber:
                     self.assertFalse(mpattr['RepresentativeImageFlag'])
@@ -108,7 +107,6 @@ class TestFileMpo(PillowTestCase):
                 self.assertEqual(mpattr['MPType'],
                                  'Multi-Frame Image: (Disparity)')
                 self.assertEqual(mpattr['Reserved'], 0)
-                frameNumber += 1
 
     def test_seek(self):
         for test_file in test_files:

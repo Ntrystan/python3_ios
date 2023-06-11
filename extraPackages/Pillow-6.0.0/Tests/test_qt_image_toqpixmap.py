@@ -17,5 +17,5 @@ class TestToQPixmap(PillowQPixmapTestCase, PillowTestCase):
             self.assertFalse(data.isNull())
 
             # Test saving the file
-            tempfile = self.tempfile('temp_{}.png'.format(mode))
+            tempfile = self.tempfile(f'temp_{mode}.png')
             data.save(tempfile)

@@ -89,5 +89,5 @@ def main(args = sys.argv[1:], out=sys.stdout):
         args = ['-']
     return sum(args, out)
 
-if __name__ == '__main__' or __name__ == sys.argv[0]:
+if __name__ in ['__main__', sys.argv[0]]:
     sys.exit(main(sys.argv[1:], sys.stdout))

@@ -107,10 +107,7 @@ class TestImageGetPixel(AccessTest):
     @staticmethod
     def color(mode):
         bands = Image.getmodebands(mode)
-        if bands == 1:
-            return 1
-        else:
-            return tuple(range(1, bands + 1))
+        return 1 if bands == 1 else tuple(range(1, bands + 1))
 
     def check(self, mode, c=None):
         if not c:
@@ -120,8 +117,10 @@ class TestImageGetPixel(AccessTest):
         im = Image.new(mode, (1, 1), None)
         im.putpixel((0, 0), c)
         self.assertEqual(
-            im.getpixel((0, 0)), c,
-            "put/getpixel roundtrip failed for mode %s, color %s" % (mode, c))
+            im.getpixel((0, 0)),
+            c,
+            f"put/getpixel roundtrip failed for mode {mode}, color {c}",
+        )
 
         # check putpixel negative index
         im.putpixel((-1, -1), c)
@@ -145,8 +144,10 @@ class TestImageGetPixel(AccessTest):
         # check initial color
         im = Image.new(mode, (1, 1), c)
         self.assertEqual(
-            im.getpixel((0, 0)), c,
-            "initial color failed for mode %s, color %s " % (mode, c))
+            im.getpixel((0, 0)),
+            c,
+            f"initial color failed for mode {mode}, color {c} ",
+        )
         # check initial color negative index
         self.assertEqual(
             im.getpixel((-1, -1)), c,
@@ -358,7 +359,7 @@ int main(int argc, char* argv[])
         compiler.link_executable(objects, 'embed_pil')
 
         env = os.environ.copy()
-        env["PATH"] = sys.prefix + ';' + env["PATH"]
+        env["PATH"] = f'{sys.prefix};' + env["PATH"]
 
         # do not display the Windows Error Reporting dialog
         ctypes.windll.kernel32.SetErrorMode(0x0002)

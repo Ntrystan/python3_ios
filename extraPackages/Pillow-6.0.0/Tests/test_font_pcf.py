@@ -25,7 +25,7 @@ class TestFontPcf(PillowTestCase):
         self.assertEqual(len([_f for _f in font.glyph if _f]), 223)
 
         tempname = self.tempfile("temp.pil")
-        self.addCleanup(self.delete_tempfile, tempname[:-4]+'.pbm')
+        self.addCleanup(self.delete_tempfile, f'{tempname[:-4]}.pbm')
         font.save(tempname)
 
         with Image.open(tempname.replace('.pil', '.pbm')) as loaded:

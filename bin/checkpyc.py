@@ -8,8 +8,11 @@ from stat import ST_MTIME
 import importlib.util
 
 # PEP 3147 compatibility (PYC Repository Directories)
-cache_from_source = (importlib.util.cache_from_source if sys.implementation.cache_tag
-                     else lambda path: path + 'c')
+cache_from_source = (
+    importlib.util.cache_from_source
+    if sys.implementation.cache_tag
+    else (lambda path: f'{path}c')
+)
 
 
 def main():
@@ -60,9 +63,7 @@ def main():
 
 
 def get_long(s):
-    if len(s) != 4:
-        return -1
-    return s[0] + (s[1] << 8) + (s[2] << 16) + (s[3] << 24)
+    return -1 if len(s) != 4 else s[0] + (s[1] << 8) + (s[2] << 16) + (s[3] << 24)
 
 
 if __name__ == '__main__':

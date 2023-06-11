@@ -85,7 +85,7 @@ def main():
         elif o in ('-v', '--verbose'):
             verbose = True
         elif o in ('--newline',):
-            if not a.upper() in ('CRLF', 'LF'):
+            if a.upper() not in ('CRLF', 'LF'):
                 usage()
                 return
             spec_newline = dict(CRLF='\r\n', LF='\n')[a.upper()]
@@ -121,18 +121,18 @@ def check(file):
         try:
             encoding, _ = tokenize.detect_encoding(f.readline)
         except SyntaxError as se:
-            errprint("%s: SyntaxError: %s" % (file, str(se)))
+            errprint(f"{file}: SyntaxError: {str(se)}")
             return
     try:
         with open(file, encoding=encoding) as f:
             r = Reindenter(f)
     except IOError as msg:
-        errprint("%s: I/O Error: %s" % (file, str(msg)))
+        errprint(f"{file}: I/O Error: {str(msg)}")
         return
 
     newline = spec_newline if spec_newline else r.newlines
     if isinstance(newline, tuple):
-        errprint("%s: mixed newlines detected; cannot continue without --newline" % file)
+        errprint(f"{file}: mixed newlines detected; cannot continue without --newline")
         return
 
     if r.run():
@@ -141,7 +141,7 @@ def check(file):
             if dryrun:
                 print("But this is a dry run, so leaving it alone.")
         if not dryrun:
-            bak = file + ".bak"
+            bak = f"{file}.bak"
             if makebackup:
                 shutil.copyfile(file, bak)
                 if verbose:
@@ -222,36 +222,36 @@ class Reindenter:
             nextstmt = stats[i + 1][0]
             have = getlspace(lines[thisstmt])
             want = thislevel * 4
-            if want < 0:
                 # A comment line.
-                if have:
+            if have:
+                if want < 0:
                     # An indented comment line.  If we saw the same
                     # indentation before, reuse what it most recently
                     # mapped to.
                     want = have2want.get(have, -1)
-                    if want < 0:
-                        # Then it probably belongs to the next real stmt.
-                        for j in range(i + 1, len(stats) - 1):
-                            jline, jlevel = stats[j]
-                            if jlevel >= 0:
-                                if have == getlspace(lines[jline]):
-                                    want = jlevel * 4
-                                break
-                    if want < 0:           # Maybe it's a hanging
-                                           # comment like this one,
-                        # in which case we should shift it like its base
-                        # line got shifted.
-                        for j in range(i - 1, -1, -1):
-                            jline, jlevel = stats[j]
-                            if jlevel >= 0:
-                                want = have + (getlspace(after[jline - 1]) -
-                                               getlspace(lines[jline]))
-                                break
-                    if want < 0:
-                        # Still no luck -- leave it alone.
-                        want = have
-                else:
-                    want = 0
+                if want < 0:
+                    # Then it probably belongs to the next real stmt.
+                    for j in range(i + 1, len(stats) - 1):
+                        jline, jlevel = stats[j]
+                        if jlevel >= 0:
+                            if have == getlspace(lines[jline]):
+                                want = jlevel * 4
+                            break
+                if want < 0:           # Maybe it's a hanging
+                                       # comment like this one,
+                    # in which case we should shift it like its base
+                    # line got shifted.
+                    for j in range(i - 1, -1, -1):
+                        jline, jlevel = stats[j]
+                        if jlevel >= 0:
+                            want = have + (getlspace(after[jline - 1]) -
+                                           getlspace(lines[jline]))
+                            break
+                if want < 0:
+                    # Still no luck -- leave it alone.
+                    want = have
+            else:
+                want = max(want, 0)
             assert want >= 0
             have2want[have] = want
             diff = want - have

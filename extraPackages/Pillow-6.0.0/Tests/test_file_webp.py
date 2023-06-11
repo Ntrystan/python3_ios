@@ -169,6 +169,5 @@ class TestFileWebp(PillowTestCase):
 
         reread = Image.open(out_gif)
         reread_value = reread.convert("RGB").getpixel((1, 1))
-        difference = sum([abs(original_value[i] - reread_value[i])
-                          for i in range(0, 3)])
+        difference = sum(abs(original_value[i] - reread_value[i]) for i in range(0, 3))
         self.assertLess(difference, 5)

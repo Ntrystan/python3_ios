@@ -214,7 +214,7 @@ class TestImageFont(PillowTestCase):
             draw = ImageDraw.Draw(im)
             draw.multiline_text((0, 0), TEST_TEXT, font=ttf, align=align)
 
-            target = 'Tests/images/multiline_text'+ext+'.png'
+            target = f'Tests/images/multiline_text{ext}.png'
             target_img = Image.open(target)
 
             # Epsilon ~.5 fails with FreeType 2.7
@@ -473,23 +473,20 @@ class TestImageFont(PillowTestCase):
                             'Arial.ttf', 'Single.otf', 'Duplicate.otf',
                             'Duplicate.ttf'], )]
                     return [(path, [], ['some_random_font.ttf'], )]
+
                 with SimplePatcher(os, 'walk', fake_walker):
                     # Test that the font loads both with and without the
                     # extension
-                    self._test_fake_loading_font(
-                        font_directory+'/Arial.ttf', 'Arial.ttf')
-                    self._test_fake_loading_font(
-                        font_directory+'/Arial.ttf', 'Arial')
+                    self._test_fake_loading_font(f'{font_directory}/Arial.ttf', 'Arial.ttf')
+                    self._test_fake_loading_font(f'{font_directory}/Arial.ttf', 'Arial')
 
                     # Test that non-ttf fonts can be found without the
                     # extension
-                    self._test_fake_loading_font(
-                        font_directory+'/Single.otf', 'Single')
+                    self._test_fake_loading_font(f'{font_directory}/Single.otf', 'Single')
 
                     # Test that ttf fonts are preferred if the extension is
                     # not specified
-                    self._test_fake_loading_font(
-                        font_directory+'/Duplicate.ttf', 'Duplicate')
+                    self._test_fake_loading_font(f'{font_directory}/Duplicate.ttf', 'Duplicate')
 
     @unittest.skipIf(sys.platform.startswith('win32'),
                      "requires Unix or macOS")
@@ -504,15 +501,12 @@ class TestImageFont(PillowTestCase):
                             ['Arial.ttf', 'Single.otf',
                              'Duplicate.otf', 'Duplicate.ttf'], )]
                 return [(path, [], ['some_random_font.ttf'], )]
+
             with SimplePatcher(os, 'walk', fake_walker):
-                self._test_fake_loading_font(
-                    font_directory+'/Arial.ttf', 'Arial.ttf')
-                self._test_fake_loading_font(
-                    font_directory+'/Arial.ttf', 'Arial')
-                self._test_fake_loading_font(
-                    font_directory+'/Single.otf', 'Single')
-                self._test_fake_loading_font(
-                    font_directory+'/Duplicate.ttf', 'Duplicate')
+                self._test_fake_loading_font(f'{font_directory}/Arial.ttf', 'Arial.ttf')
+                self._test_fake_loading_font(f'{font_directory}/Arial.ttf', 'Arial')
+                self._test_fake_loading_font(f'{font_directory}/Single.otf', 'Single')
+                self._test_fake_loading_font(f'{font_directory}/Duplicate.ttf', 'Duplicate')
 
     def test_imagefont_getters(self):
         # Arrange

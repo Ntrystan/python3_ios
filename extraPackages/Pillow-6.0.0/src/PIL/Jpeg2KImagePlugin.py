@@ -41,10 +41,7 @@ def _parse_codestream(fp):
 
     size = (xsiz - xosiz, ysiz - yosiz)
     if csiz == 1:
-        if (yrsiz[0] & 0x7f) > 8:
-            mode = 'I;16'
-        else:
-            mode = 'L'
+        mode = 'I;16' if (yrsiz[0] & 0x7f) > 8 else 'L'
     elif csiz == 2:
         mode = 'LA'
     elif csiz == 3:
@@ -170,13 +167,12 @@ class Jpeg2KImageFile(ImageFile.ImageFile):
         else:
             sig = sig + self.fp.read(8)
 
-            if sig == b'\x00\x00\x00\x0cjP  \x0d\x0a\x87\x0a':
-                self.codec = "jp2"
-                header = _parse_jp2_header(self.fp)
-                self._size, self.mode, self.custom_mimetype = header
-            else:
+            if sig != b'\x00\x00\x00\x0cjP  \x0d\x0a\x87\x0a':
                 raise SyntaxError('not a JPEG 2000 file')
 
+            self.codec = "jp2"
+            header = _parse_jp2_header(self.fp)
+            self._size, self.mode, self.custom_mimetype = header
         if self.size is None or self.mode is None:
             raise SyntaxError('unable to determine size/mode')
 
@@ -227,11 +223,7 @@ def _accept(prefix):
 # Save support
 
 def _save(im, fp, filename):
-    if filename.endswith('.j2k'):
-        kind = 'j2k'
-    else:
-        kind = 'jp2'
-
+    kind = 'j2k' if filename.endswith('.j2k') else 'jp2'
     # Get the keyword arguments
     info = im.encoderinfo
 
@@ -241,9 +233,11 @@ def _save(im, fp, filename):
     quality_mode = info.get('quality_mode', 'rates')
     quality_layers = info.get('quality_layers', None)
     if quality_layers is not None and not (
-        isinstance(quality_layers, (list, tuple)) and
-        all([isinstance(quality_layer, (int, float))
-             for quality_layer in quality_layers])
+        isinstance(quality_layers, (list, tuple))
+        and all(
+            isinstance(quality_layer, (int, float))
+            for quality_layer in quality_layers
+        )
     ):
         raise ValueError('quality_layers must be a sequence of numbers')
 

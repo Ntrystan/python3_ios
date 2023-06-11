@@ -50,7 +50,7 @@ def store(dict, key, item):
 def flat(list):
     s = ''
     for item in list:
-        s = s + ' ' + item
+        s = f'{s} {item}'
     return s[1:]
 
 # Global variables mapping defined/undefined names to files and back.
@@ -79,8 +79,8 @@ def readinput(fp):
         elif type in externals:
             store(file2undef, fn, name)
             store(undef2file, name, fn)
-        elif not type in ignore:
-            print(fn + ':' + name + ': unknown type ' + type)
+        elif type not in ignore:
+            print(f'{fn}:{name}: unknown type {type}')
 
 # Print all names that were undefined in some module and where they are
 # defined.
@@ -88,14 +88,11 @@ def readinput(fp):
 def printcallee():
     flist = sorted(file2undef.keys())
     for filename in flist:
-        print(filename + ':')
+        print(f'{filename}:')
         elist = file2undef[filename]
         elist.sort()
         for ext in elist:
-            if len(ext) >= 8:
-                tabs = '\t'
-            else:
-                tabs = '\t\t'
+            tabs = '\t' if len(ext) >= 8 else '\t\t'
             if ext not in def2file:
                 print('\t' + ext + tabs + ' *undefined')
             else:
@@ -112,14 +109,14 @@ def printcaller():
                 callers = callers + undef2file[label]
         if callers:
             callers.sort()
-            print(filename + ':')
+            print(f'{filename}:')
             lastfn = ''
             for fn in callers:
                 if fn != lastfn:
                     print('\t' + fn)
                 lastfn = fn
         else:
-            print(filename + ': unused')
+            print(f'{filename}: unused')
 
 # Print undefined names and where they are used.
 #
@@ -131,7 +128,7 @@ def printundef():
                 store(undefs, ext, filename)
     elist = sorted(undefs.keys())
     for ext in elist:
-        print(ext + ':')
+        print(f'{ext}:')
         flist = sorted(undefs[ext])
         for filename in flist:
             print('\t' + filename)

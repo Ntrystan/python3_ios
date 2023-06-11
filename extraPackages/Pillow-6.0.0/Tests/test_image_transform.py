@@ -179,11 +179,7 @@ class TestImageTransformAffine(PillowTestCase):
         matrix[2] = (1 - matrix[0] - matrix[1]) * im.width / 2
         matrix[5] = (1 - matrix[3] - matrix[4]) * im.height / 2
 
-        if transpose is not None:
-            transposed = im.transpose(transpose)
-        else:
-            transposed = im
-
+        transposed = im.transpose(transpose) if transpose is not None else im
         for resample in [Image.NEAREST, Image.BILINEAR, Image.BICUBIC]:
             transformed = im.transform(transposed.size, self.transform,
                                        matrix, resample)

@@ -12,16 +12,16 @@ def get_exported_symbols():
         raise Exception("failed to get LIBRARY")
 
     args = ('nm', '-p', LIBRARY)
-    print("+ %s" % ' '.join(args))
+    print(f"+ {' '.join(args)}")
     proc = subprocess.run(args, stdout=subprocess.PIPE, universal_newlines=True)
     if proc.returncode:
         sys.stdout.write(proc.stdout)
         sys.exit(proc.returncode)
 
-    stdout = proc.stdout.rstrip()
-    if not stdout:
+    if stdout := proc.stdout.rstrip():
+        return stdout
+    else:
         raise Exception("command output is empty")
-    return stdout
 
 
 def get_smelly_symbols(stdout):
@@ -49,11 +49,11 @@ def get_smelly_symbols(stdout):
         symbol = parts[-1]
         if symbol.startswith(('Py', '_Py')):
             continue
-        symbol = '%s (type: %s)' % (symbol, symtype)
+        symbol = f'{symbol} (type: {symtype})'
         symbols.append(symbol)
 
     if ignored_symtypes:
-        print("Ignored symbol types: %s" % ', '.join(sorted(ignored_symtypes)))
+        print(f"Ignored symbol types: {', '.join(sorted(ignored_symtypes))}")
         print()
     return symbols
 
@@ -68,9 +68,9 @@ def main():
 
     symbols.sort()
     for symbol in symbols:
-        print("Smelly symbol: %s" % symbol)
+        print(f"Smelly symbol: {symbol}")
     print()
-    print("ERROR: Found %s smelly symbols!" % len(symbols))
+    print(f"ERROR: Found {len(symbols)} smelly symbols!")
     sys.exit(1)
 
 

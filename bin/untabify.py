@@ -36,7 +36,7 @@ def process(filename, tabsize, verbose=True):
     newtext = text.expandtabs(tabsize)
     if newtext == text:
         return
-    backup = filename + "~"
+    backup = f"{filename}~"
     try:
         os.unlink(backup)
     except OSError:

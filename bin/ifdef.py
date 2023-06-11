@@ -45,9 +45,8 @@ def main():
         if filename == '-':
             process(sys.stdin, sys.stdout)
         else:
-            f = open(filename, 'r')
-            process(f, sys.stdout)
-            f.close()
+            with open(filename, 'r') as f:
+                process(f, sys.stdout)
 
 def process(fpi, fpo):
     keywords = ('if', 'ifdef', 'ifndef', 'else', 'endif')
@@ -57,9 +56,10 @@ def process(fpi, fpo):
         line = fpi.readline()
         if not line: break
         while line[-2:] == '\\\n':
-            nextline = fpi.readline()
-            if not nextline: break
-            line = line + nextline
+            if nextline := fpi.readline():
+                line = line + nextline
+            else:
+                break
         tmp = line.strip()
         if tmp[:1] != '#':
             if ok: fpo.write(line)
@@ -71,10 +71,7 @@ def process(fpi, fpo):
             if ok: fpo.write(line)
             continue
         if keyword in ('ifdef', 'ifndef') and len(words) == 2:
-            if keyword == 'ifdef':
-                ko = 1
-            else:
-                ko = 0
+            ko = 1 if keyword == 'ifdef' else 0
             word = words[1]
             if word in defs:
                 stack.append((ok, ko, word))
@@ -94,8 +91,7 @@ def process(fpi, fpo):
                 if ok: fpo.write(line)
             else:
                 s_ko = not s_ko
-                ok = s_ok
-                if not s_ko: ok = 0
+                ok = 0 if not s_ko else s_ok
                 stack[-1] = s_ok, s_ko, s_word
         elif keyword == 'endif' and stack:
             s_ok, s_ko, s_word = stack[-1]

@@ -34,7 +34,7 @@ def _open(fullpath):
     try:
         size = os.stat(fullpath).st_size
     except OSError as err: # Permission denied - ignore the file
-        print_debug("%s: permission denied: %s" % (fullpath, err))
+        print_debug(f"{fullpath}: permission denied: {err}")
         return None
 
     if size > 1024*1024: # too big
@@ -44,7 +44,7 @@ def _open(fullpath):
     try:
         return open(fullpath, "rb")
     except IOError as err: # Access denied, or a special file - ignore it
-        print_debug("%s: access denied: %s" % (fullpath, err))
+        print_debug(f"{fullpath}: access denied: {err}")
         return None
 
 def has_python_ext(fullpath):
@@ -60,7 +60,7 @@ def looks_like_python(fullpath):
 
     if binary_re.search(line):
         # file appears to be binary
-        print_debug("%s: appears to be binary" % fullpath)
+        print_debug(f"{fullpath}: appears to be binary")
         return False
 
     if fullpath.endswith(".py") or fullpath.endswith(".pyw"):
@@ -82,7 +82,7 @@ def can_be_compiled(fullpath):
     try:
         compile(code, fullpath, "exec")
     except Exception as err:
-        print_debug("%s: cannot compile: %s" % (fullpath, err))
+        print_debug(f"{fullpath}: cannot compile: {err}")
         return False
 
     return True
@@ -102,7 +102,7 @@ def walk_python_files(paths, is_python=looks_like_python, exclude_dirs=None):
         exclude_dirs=[]
 
     for path in paths:
-        print_debug("testing: %s" % path)
+        print_debug(f"testing: {path}")
         if os.path.isfile(path):
             if is_python(path):
                 yield path
@@ -114,7 +114,7 @@ def walk_python_files(paths, is_python=looks_like_python, exclude_dirs=None):
                         dirnames.remove(exclude)
                 for filename in filenames:
                     fullpath = os.path.join(dirpath, filename)
-                    print_debug("testing: %s" % fullpath)
+                    print_debug(f"testing: {fullpath}")
                     if is_python(fullpath):
                         yield fullpath
         else:

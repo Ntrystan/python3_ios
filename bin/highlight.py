@@ -67,9 +67,10 @@ def analyze_python(source):
 
 def raw_highlight(classified_text):
     'Straight text display of text classifications'
-    result = []
-    for kind, text in classified_text:
-        result.append('%15s:  %r\n' % (kind or 'plain', text))
+    result = [
+        '%15s:  %r\n' % (kind or 'plain', text)
+        for kind, text in classified_text
+    ]
     return ''.join(result)
 
 #### ANSI Output ###########################################
@@ -101,7 +102,7 @@ def html_highlight(classified_text,opener='<pre class="python">\n', closer='</pr
     result = [opener]
     for kind, text in classified_text:
         if kind:
-            result.append('<span class="%s">' % kind)
+            result.append(f'<span class="{kind}">')
         result.append(html_module.escape(text))
         if kind:
             result.append('</span>')
@@ -257,9 +258,9 @@ if __name__ == '__main__':
         encoded = ansi_highlight(classified_text)
 
     if args.browser:
-        htmlfile = os.path.splitext(os.path.basename(sourcefile))[0] + '.html'
+        htmlfile = f'{os.path.splitext(os.path.basename(sourcefile))[0]}.html'
         with open(htmlfile, 'w') as f:
             f.write(encoded)
-        webbrowser.open('file://' + os.path.abspath(htmlfile))
+        webbrowser.open(f'file://{os.path.abspath(htmlfile)}')
     else:
         sys.stdout.write(encoded)

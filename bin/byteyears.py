@@ -21,10 +21,7 @@ def main():
     if sys.argv[1] == '-m':
         itime = ST_MTIME
         del sys.argv[1]
-    elif sys.argv[1] == '-c':
-        itime = ST_CTIME
-        del sys.argv[1]
-    elif sys.argv[1] == '-a':
+    elif sys.argv[1] in ['-c', '-a']:
         itime = ST_CTIME
         del sys.argv[1]
     else:

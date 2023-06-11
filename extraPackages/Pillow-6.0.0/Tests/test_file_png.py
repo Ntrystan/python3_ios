@@ -297,7 +297,7 @@ class TestFilePng(PillowTestCase):
             "L": 559,
             "I": 559,
         }.items():
-            in_file = "Tests/images/"+mode.lower()+"_trns.png"
+            in_file = f"Tests/images/{mode.lower()}_trns.png"
             im = Image.open(in_file)
             self.assertEqual(im.mode, mode)
             self.assertEqual(im.info["transparency"], 255)
@@ -459,11 +459,11 @@ class TestFilePng(PillowTestCase):
             self.assertEqual(im.info, {"Text": value})
 
         if py3:
-            rt_text(" Aa" + chr(0xa0) + chr(0xc4) + chr(0xff))  # Latin1
+            rt_text(f" Aa{chr(160)}{chr(196)}{chr(255)}")
             rt_text(chr(0x400) + chr(0x472) + chr(0x4ff))       # Cyrillic
             rt_text(chr(0x4e00) + chr(0x66f0) +                 # CJK
                     chr(0x9fba) + chr(0x3042) + chr(0xac00))
-            rt_text("A" + chr(0xc4) + chr(0x472) + chr(0x3042))  # Combined
+            rt_text(f"A{chr(196)}{chr(1138)}{chr(12354)}")
 
     def test_scary(self):
         # Check reading of evil PNG file.  For information, see:

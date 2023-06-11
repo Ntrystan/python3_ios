@@ -41,20 +41,14 @@ class TestFormatHSV(PillowTestCase):
         b.paste(w, (px, 0))
         b.paste(w90, (2*px, 0))
 
-        img = Image.merge('RGB', (r, g, b))
-
-        return img
+        return Image.merge('RGB', (r, g, b))
 
     def to_xxx_colorsys(self, im, func, mode):
         # convert the hard way using the library colorsys routines.
 
         (r, g, b) = im.split()
 
-        if py3:
-            conv_func = self.int_to_float
-        else:
-            conv_func = self.str_to_float
-
+        conv_func = self.int_to_float if py3 else self.str_to_float
         if hasattr(itertools, 'izip'):
             iter_helper = itertools.izip
         else:
@@ -72,9 +66,7 @@ class TestFormatHSV(PillowTestCase):
             new_bytes = b''.join(chr(h)+chr(s)+chr(v) for (
                 h, s, v) in converted)
 
-        hsv = Image.frombytes(mode, r.size, new_bytes)
-
-        return hsv
+        return Image.frombytes(mode, r.size, new_bytes)
 
     def to_hsv_colorsys(self, im):
         return self.to_xxx_colorsys(im, colorsys.rgb_to_hsv, 'HSV')

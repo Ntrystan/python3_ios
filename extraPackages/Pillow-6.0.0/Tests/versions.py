@@ -3,8 +3,7 @@ from PIL import Image
 
 
 def version(module, version):
-    v = getattr(module.core, version + "_version", None)
-    if v:
+    if v := getattr(module.core, f"{version}_version", None):
         print(version, v)
 
 

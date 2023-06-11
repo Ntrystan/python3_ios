@@ -10,9 +10,8 @@ class TestImagePutPalette(PillowTestCase):
             im = hopper(mode).copy()
             im.putpalette(list(range(256))*3)
             p = im.getpalette()
-            if p:
-                return im.mode, p[:10]
-            return im.mode
+            return (im.mode, p[:10]) if p else im.mode
+
         self.assertRaises(ValueError, palette, "1")
         for mode in ["L", "LA", "P", "PA"]:
             self.assertEqual(palette(mode),

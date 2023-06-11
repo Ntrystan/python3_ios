@@ -38,10 +38,7 @@ def writefile(f,defs):
     for name, (charcode,comment) in items:
         if charcode[:2] == '&#':
             code = int(charcode[2:-1])
-            if code < 256:
-                charcode = r"'\%o'" % code
-            else:
-                charcode = repr(charcode)
+            charcode = r"'\%o'" % code if code < 256 else repr(charcode)
         else:
             charcode = repr(charcode)
         comment = ' '.join(comment.split())
@@ -49,14 +46,8 @@ def writefile(f,defs):
     f.write('\n}\n')
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        infile = open(sys.argv[1])
-    else:
-        infile = sys.stdin
-    if len(sys.argv) > 2:
-        outfile = open(sys.argv[2],'w')
-    else:
-        outfile = sys.stdout
+    infile = open(sys.argv[1]) if len(sys.argv) > 1 else sys.stdin
+    outfile = open(sys.argv[2],'w') if len(sys.argv) > 2 else sys.stdout
     text = infile.read()
     defs = parse(text)
     writefile(outfile,defs)

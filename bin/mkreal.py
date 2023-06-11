@@ -22,9 +22,10 @@ def mkrealfile(name):
     os.unlink(name)
     f_out = open(name, 'w')
     while 1:
-        buf = f_in.read(BUFSIZE)
-        if not buf: break
-        f_out.write(buf)
+        if buf := f_in.read(BUFSIZE):
+            f_out.write(buf)
+        else:
+            break
     del f_out # Flush data to disk before changing mode
     os.chmod(name, mode)
 
@@ -53,13 +54,12 @@ def main():
     status = 0
     for name in args:
         if not os.path.islink(name):
-            print(progname+':', name+':', 'not a symlink')
+            print(f'{progname}:', f'{name}:', 'not a symlink')
             status = 1
+        elif os.path.isdir(name):
+            mkrealdir(name)
         else:
-            if os.path.isdir(name):
-                mkrealdir(name)
-            else:
-                mkrealfile(name)
+            mkrealfile(name)
     sys.exit(status)
 
 if __name__ == '__main__':

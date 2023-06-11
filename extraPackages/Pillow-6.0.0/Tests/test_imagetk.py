@@ -27,7 +27,7 @@ class TestImageTk(PillowTestCase):
             tk.Frame()
             # root = tk.Tk()
         except tk.TclError as v:
-            self.skipTest("TCL Error: %s" % v)
+            self.skipTest(f"TCL Error: {v}")
 
     def test_kw(self):
         TEST_JPG = "Tests/images/hopper.jpg"

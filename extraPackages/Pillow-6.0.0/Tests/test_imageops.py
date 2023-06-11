@@ -98,8 +98,7 @@ class TestImageOps(PillowTestCase):
                                       color=color, centering=centering)
                 self.assertEqual(new_im.size, new_size)
 
-                target = Image.open(
-                    "Tests/images/imageops_pad_"+label+"_"+str(i)+".jpg")
+                target = Image.open(f"Tests/images/imageops_pad_{label}_{str(i)}.jpg")
                 self.assert_image_similar(new_im, target, 6)
 
     def test_pil163(self):
@@ -233,11 +232,11 @@ class TestImageOps(PillowTestCase):
         if HAVE_WEBP and _webp.HAVE_WEBPANIM:
             exts.append(".webp")
         for ext in exts:
-            base_im = Image.open("Tests/images/hopper"+ext)
+            base_im = Image.open(f"Tests/images/hopper{ext}")
 
             orientations = [base_im]
             for i in range(2, 9):
-                im = Image.open("Tests/images/hopper_orientation_"+str(i)+ext)
+                im = Image.open(f"Tests/images/hopper_orientation_{str(i)}{ext}")
                 orientations.append(im)
             for i, orientation_im in enumerate(orientations):
                 for im in [

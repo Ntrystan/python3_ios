@@ -68,10 +68,7 @@ class ImageDraw(object):
                 blend = 1
             else:
                 raise ValueError("mode mismatch")
-        if mode == "P":
-            self.palette = im.palette
-        else:
-            self.palette = None
+        self.palette = im.palette if mode == "P" else None
         self.im = im.im
         self.draw = Image.core.draw(self.im, blend)
         self.mode = mode
@@ -79,11 +76,7 @@ class ImageDraw(object):
             self.ink = self.draw.draw_ink(1, mode)
         else:
             self.ink = self.draw.draw_ink(-1, mode)
-        if mode in ("1", "P", "I", "F"):
-            # FIXME: fix Fill2 to properly support matte for I+F images
-            self.fontmode = "1"
-        else:
-            self.fontmode = "L"  # aliasing is okay for other modes
+        self.fontmode = "1" if mode in ("1", "P", "I", "F") else "L"
         self.fill = 0
         self.font = None
 
@@ -172,13 +165,14 @@ class ImageDraw(object):
                         x, y = coord
                         angle -= 90
                         distance = width/2 - 1
-                        return tuple([
-                            p +
-                            (math.floor(p_d) if p_d > 0 else math.ceil(p_d))
-                            for p, p_d in
-                            ((x, distance * math.cos(math.radians(angle))),
-                             (y, distance * math.sin(math.radians(angle))))
-                        ])
+                        return tuple(
+                            p + (math.floor(p_d) if p_d > 0 else math.ceil(p_d))
+                            for p, p_d in (
+                                (x, distance * math.cos(math.radians(angle))),
+                                (y, distance * math.sin(math.radians(angle))),
+                            )
+                        )
+
                     flipped = ((angles[1] > angles[0] and
                                 angles[1] - 180 > angles[0]) or
                                (angles[1] < angles[0] and
@@ -429,7 +423,7 @@ def floodfill(image, xy, value, border=None, thresh=0):
                     if border is None:
                         fill = _color_diff(p, background) <= thresh
                     else:
-                        fill = p != value and p != border
+                        fill = p not in [value, border]
                     if fill:
                         pixel[s, t] = value
                         new_edge.add((s, t))
@@ -442,6 +436,6 @@ def _color_diff(color1, color2):
     Uses 1-norm distance to calculate difference between two values.
     """
     if isinstance(color2, tuple):
-        return sum([abs(color1[i]-color2[i]) for i in range(0, len(color2))])
+        return sum(abs(color1[i]-color2[i]) for i in range(0, len(color2)))
     else:
         return abs(color1-color2)

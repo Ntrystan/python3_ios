@@ -58,5 +58,5 @@ class TestFileWmf(PillowTestCase):
         im = hopper()
 
         for ext in [".wmf", ".emf"]:
-            tmpfile = self.tempfile("temp"+ext)
+            tmpfile = self.tempfile(f"temp{ext}")
             self.assertRaises(IOError, im.save, tmpfile)
