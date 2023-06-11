@@ -34,8 +34,9 @@ class TestImageEnhance(PillowTestCase):
 
     def _check_alpha(self, im, original, op, amount):
         self.assertEqual(im.getbands(), original.getbands())
-        self.assert_image_equal(im.getchannel('A'), original.getchannel('A'),
-                                "Diff on %s: %s" % (op, amount))
+        self.assert_image_equal(
+            im.getchannel('A'), original.getchannel('A'), f"Diff on {op}: {amount}"
+        )
 
     def test_alpha(self):
         # Issue https://github.com/python-pillow/Pillow/issues/899

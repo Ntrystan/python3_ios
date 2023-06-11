@@ -138,22 +138,14 @@ class TestFileLibTiff(LibTiffTestCase):
 
             img.save(f, tiffinfo=img.tag)
 
-            if legacy_api:
-                original = img.tag.named()
-            else:
-                original = img.tag_v2.named()
-
+            original = img.tag.named() if legacy_api else img.tag_v2.named()
             # PhotometricInterpretation is set from SAVE_INFO,
             # not the original image.
             ignored = ['StripByteCounts', 'RowsPerStrip', 'PageNumber',
                        'PhotometricInterpretation']
 
             loaded = Image.open(f)
-            if legacy_api:
-                reloaded = loaded.tag.named()
-            else:
-                reloaded = loaded.tag_v2.named()
-
+            reloaded = loaded.tag.named() if legacy_api else loaded.tag_v2.named()
             for tag, value in itertools.chain(reloaded.items(),
                                               original.items()):
                 if tag not in ignored:
@@ -163,21 +155,23 @@ class TestFileLibTiff(LibTiffTestCase):
                             self.assertEqual(
                                 c_float(val[0][0] / val[0][1]).value,
                                 c_float(value[0][0] / value[0][1]).value,
-                                msg="%s didn't roundtrip" % tag)
+                                msg=f"{tag} didn't roundtrip",
+                            )
                         else:
                             self.assertEqual(
-                                c_float(val).value, c_float(value).value,
-                                msg="%s didn't roundtrip" % tag)
+                                c_float(val).value,
+                                c_float(value).value,
+                                msg=f"{tag} didn't roundtrip",
+                            )
                     else:
-                        self.assertEqual(
-                            val, value, msg="%s didn't roundtrip" % tag)
+                        self.assertEqual(val, value, msg=f"{tag} didn't roundtrip")
 
             # https://github.com/python-pillow/Pillow/issues/1561
             requested_fields = ['StripByteCounts',
                                 'RowsPerStrip',
                                 'StripOffsets']
             for field in requested_fields:
-                self.assertIn(field, reloaded, "%s not in metadata" % field)
+                self.assertIn(field, reloaded, f"{field} not in metadata")
 
     def test_additional_metadata(self):
         # these should not crash. Seriously dummy data, most of it doesn't make

@@ -60,8 +60,7 @@ def main():
         elif os.path.islink(arg):
             err(arg + ': will not process symbolic links\n')
             bad = 1
-        else:
-            if fix(arg): bad = 1
+        elif fix(arg): bad = 1
     sys.exit(bad)
 
 ispythonprog = re.compile(r'^[a-zA-Z0-9_]+\.py$')
@@ -104,7 +103,7 @@ def fix(filename):
         f.close()
         return
     head, tail = os.path.split(filename)
-    tempname = os.path.join(head, '@' + tail)
+    tempname = os.path.join(head, f'@{tail}')
     try:
         g = open(tempname, 'wb')
     except IOError as msg:
@@ -115,9 +114,10 @@ def fix(filename):
     g.write(fixed)
     BUFSIZE = 8*1024
     while 1:
-        buf = f.read(BUFSIZE)
-        if not buf: break
-        g.write(buf)
+        if buf := f.read(BUFSIZE):
+            g.write(buf)
+        else:
+            break
     g.close()
     f.close()
 
@@ -135,7 +135,7 @@ def fix(filename):
         err('%s: warning: chmod failed (%r)\n' % (tempname, msg))
     # Then make a backup of the original file as filename~
     try:
-        os.rename(filename, filename + '~')
+        os.rename(filename, f'{filename}~')
     except OSError as msg:
         err('%s: warning: backup failed (%r)\n' % (filename, msg))
     # Now move the temp file to the original file
@@ -157,9 +157,7 @@ def fix(filename):
 def fixline(line):
     if not line.startswith(b'#!'):
         return line
-    if b"python" not in line:
-        return line
-    return b'#! ' + new_interpreter + b'\n'
+    return line if b"python" not in line else b'#! ' + new_interpreter + b'\n'
 
 if __name__ == '__main__':
     main()

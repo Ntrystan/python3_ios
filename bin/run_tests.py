@@ -33,13 +33,7 @@ def main(regrtest_args):
     # Allow user-specified interpreter options to override our defaults.
     args.extend(test.support.args_from_interpreter_flags())
 
-    # Workaround for issue #20361
-    args.extend(['-W', 'error::BytesWarning'])
-
-    args.extend(['-m', 'test',    # Run the test suite
-                 '-r',            # Randomize test order
-                 '-w',            # Re-run failed tests in verbose mode
-                 ])
+    args.extend(['-W', 'error::BytesWarning', '-m', 'test', '-r', '-w'])
     if sys.platform == 'win32':
         args.append('-n')         # Silence alerts under Windows
     if threading and not any(is_multiprocess_flag(arg) for arg in regrtest_args):

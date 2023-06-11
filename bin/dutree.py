@@ -8,9 +8,11 @@ def main():
     total, d = None, {}
     for line in p.readlines():
         i = 0
-        while line[i] in '0123456789': i = i+1
+        while line[i] in '0123456789':
+            i += 1
         size = eval(line[:i])
-        while line[i] in ' \t': i = i+1
+        while line[i] in ' \t':
+            i += 1
         filename = line[i:-1]
         comps = filename.split('/')
         if comps[0] == '': comps[0] = '/'

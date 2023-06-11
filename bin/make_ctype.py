@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Script that generates the ctype.h-replacement in stringobject.c."""
 
+
 NAMES = ("LOWER", "UPPER", "ALPHA", "DIGIT", "XDIGIT", "ALNUM", "SPACE")
 
 print("""
@@ -23,35 +24,34 @@ for i in range(128):
         if name == "XDIGIT":
             method = lambda: c.isdigit() or c.upper() in "ABCDEF"
         else:
-            method = getattr(c, "is" + name.lower())
+            method = getattr(c, f"is{name.lower()}")
         if method():
-            flags.append("FLAG_" + name)
+            flags.append(f"FLAG_{name}")
     rc = repr(c)
-    if c == '\v':
-        rc = "'\\v'"
-    elif c == '\f':
+    if c == '\f':
         rc = "'\\f'"
+    elif c == '\v':
+        rc = "'\\v'"
     if not flags:
         print("    0, /* 0x%x %s */" % (i, rc))
     else:
         print("    %s, /* 0x%x %s */" % ("|".join(flags), i, rc))
 
-for i in range(128, 256, 16):
-    print("    %s," % ", ".join(16*["0"]))
+for _ in range(128, 256, 16):
+    print(f'    {", ".join(16 * ["0"])},')
 
 print("};")
 print("")
 
 for name in NAMES:
-    print("#define IS%s(c) (ctype_table[Py_CHARMASK(c)] & FLAG_%s)" %
-          (name, name))
+    print(f"#define IS{name}(c) (ctype_table[Py_CHARMASK(c)] & FLAG_{name})")
 
 print("")
 
 for name in NAMES:
-    name = "is" + name.lower()
-    print("#undef %s" % name)
-    print("#define %s(c) undefined_%s(c)" % (name, name))
+    name = f"is{name.lower()}"
+    print(f"#undef {name}")
+    print(f"#define {name}(c) undefined_{name}(c)")
 
 print("""
 static unsigned char ctype_tolower[256] = {""")
@@ -64,7 +64,7 @@ for i in range(0, 256, 8):
             if c.isupper():
                 i = ord(c.lower())
         values.append("0x%02x" % i)
-    print("    %s," % ", ".join(values))
+    print(f'    {", ".join(values)},')
 
 print("};")
 
@@ -79,7 +79,7 @@ for i in range(0, 256, 8):
             if c.islower():
                 i = ord(c.upper())
         values.append("0x%02x" % i)
-    print("    %s," % ", ".join(values))
+    print(f'    {", ".join(values)},')
 
 print("};")
 

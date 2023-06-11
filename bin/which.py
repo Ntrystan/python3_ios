@@ -32,7 +32,7 @@ def main():
             except OSError:
                 continue
             if not S_ISREG(st[ST_MODE]):
-                msg(filename + ': not a disk file')
+                msg(f'{filename}: not a disk file')
             else:
                 mode = S_IMODE(st[ST_MODE])
                 if mode & 0o111:
@@ -40,18 +40,16 @@ def main():
                         print(filename)
                         ident = st[:3]
                     else:
-                        if st[:3] == ident:
-                            s = 'same as: '
-                        else:
-                            s = 'also: '
+                        s = 'same as: ' if st[:3] == ident else 'also: '
                         msg(s + filename)
                 else:
-                    msg(filename + ': not executable')
+                    msg(f'{filename}: not executable')
             if longlist:
-                sts = os.system('ls ' + longlist + ' ' + filename)
-                if sts: msg('"ls -l" exit status: ' + repr(sts))
+                sts = os.system(f'ls {longlist} {filename}')
+                if sts:
+                    msg(f'"ls -l" exit status: {repr(sts)}')
         if not ident:
-            msg(prog + ': not found')
+            msg(f'{prog}: not found')
             sts = 1
 
     sys.exit(sts)

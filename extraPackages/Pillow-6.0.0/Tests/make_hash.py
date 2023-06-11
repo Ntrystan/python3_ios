@@ -26,7 +26,7 @@ def check(size, i0):
     h = [None] * size
     for m in modes:
         i = hash(m, i0)
-        i = i % size
+        i %= size
         if h[i]:
             return 0
         h[i] = m

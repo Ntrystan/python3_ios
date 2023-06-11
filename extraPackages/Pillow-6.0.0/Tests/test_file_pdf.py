@@ -12,7 +12,7 @@ class TestFilePdf(PillowTestCase):
     def helper_save_as_pdf(self, mode, **kwargs):
         # Arrange
         im = hopper(mode)
-        outfile = self.tempfile("temp_" + mode + ".pdf")
+        outfile = self.tempfile(f"temp_{mode}.pdf")
 
         # Act
         im.save(outfile, **kwargs)
@@ -22,7 +22,7 @@ class TestFilePdf(PillowTestCase):
         self.assertGreater(os.path.getsize(outfile), 0)
         with PdfParser.PdfParser(outfile) as pdf:
             if kwargs.get("append_images", False) or \
-               kwargs.get("append", False):
+                   kwargs.get("append", False):
                 self.assertGreater(len(pdf.pages), 1)
             else:
                 self.assertGreater(len(pdf.pages), 0)
@@ -92,8 +92,8 @@ class TestFilePdf(PillowTestCase):
 
         # Test appending using a generator
         def imGenerator(ims):
-            for im in ims:
-                yield im
+            yield from ims
+
         im.save(outfile, save_all=True, append_images=imGenerator(ims))
 
         self.assertTrue(os.path.isfile(outfile))

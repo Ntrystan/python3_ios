@@ -28,9 +28,7 @@ def process(filename):
     sys.stderr.write('Processing %s ...\n' % filename)
     magic = 'Py_'
     for c in filename:
-        if ord(c)<=0x80 and c.isalnum():
-            magic = magic + c.upper()
-        else: magic = magic + '_'
+        magic = magic + c.upper() if ord(c)<=0x80 and c.isalnum() else f'{magic}_'
     sys.stdout = f
     print('#ifndef', magic)
     print('#define', magic)
@@ -43,7 +41,7 @@ def process(filename):
     print('#ifdef __cplusplus')
     print('}')
     print('#endif')
-    print('#endif /*', '!'+magic, '*/')
+    print('#endif /*', f'!{magic}', '*/')
 
 if __name__ == '__main__':
     main()

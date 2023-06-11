@@ -78,10 +78,7 @@ class TestImagePath(PillowTestCase):
             # This fails due to the invalid malloc above,
             # and segfaults
             for i in range(200000):
-                if py3:
-                    x[i] = b'0'*16
-                else:
-                    x[i] = "0"*16
+                x[i] = b'0'*16 if py3 else "0"*16
 
 
 class evil:

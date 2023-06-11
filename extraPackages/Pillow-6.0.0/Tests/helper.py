@@ -22,7 +22,7 @@ if os.environ.get('SHOW_ERRORS', None):
 
     class test_image_results:
         @classmethod
-        def upload(self, a, b):
+        def upload(cls, a, b):
             a.show()
             b.show()
 else:
@@ -70,16 +70,16 @@ class PillowTestCase(unittest.TestCase):
             except OSError:
                 pass  # report?
         else:
-            print("=== orphaned temp file: %s" % path)
+            print(f"=== orphaned temp file: {path}")
 
     def assert_deep_equal(self, a, b, msg=None):
         try:
             self.assertEqual(
-                len(a), len(b),
-                msg or "got length %s, expected %s" % (len(a), len(b)))
+                len(a), len(b), msg or f"got length {len(a)}, expected {len(b)}"
+            )
             self.assertTrue(
-                all(x == y for x, y in zip(a, b)),
-                msg or "got %s, expected %s" % (a, b))
+                all(x == y for x, y in zip(a, b)), msg or f"got {a}, expected {b}"
+            )
         except Exception:
             self.assertEqual(a, b, msg)
 
@@ -105,7 +105,7 @@ class PillowTestCase(unittest.TestCase):
             if HAS_UPLOADER:
                 try:
                     url = test_image_results.upload(a, b)
-                    logger.error("Url for test images: %s" % url)
+                    logger.error(f"Url for test images: {url}")
                 except Exception:
                     pass
 
@@ -144,7 +144,7 @@ class PillowTestCase(unittest.TestCase):
             if HAS_UPLOADER:
                 try:
                     url = test_image_results.upload(a, b)
-                    logger.error("Url for test images: %s" % url)
+                    logger.error(f"Url for test images: {url}")
                 except Exception:
                     pass
             raise e
@@ -168,16 +168,14 @@ class PillowTestCase(unittest.TestCase):
 
             # Verify some things.
             if warn_class is None:
-                self.assertEqual(len(w), 0,
-                                 "Expected no warnings, got %s" %
-                                 [v.category for v in w])
+                self.assertEqual(
+                    len(w),
+                    0,
+                    f"Expected no warnings, got {[v.category for v in w]}",
+                )
             else:
                 self.assertGreaterEqual(len(w), 1)
-                found = False
-                for v in w:
-                    if issubclass(v.category, warn_class):
-                        found = True
-                        break
+                found = any(issubclass(v.category, warn_class) for v in w)
                 self.assertTrue(found)
         return result
 
@@ -194,8 +192,7 @@ class PillowTestCase(unittest.TestCase):
         for i, target in enumerate(targets):
             value *= (target - threshold <= actuals[i] <= target + threshold)
 
-        self.assertTrue(value,
-                        msg + ': ' + repr(actuals) + ' != ' + repr(targets))
+        self.assertTrue(value, f'{msg}: {repr(actuals)} != {repr(targets)}')
 
     def skipKnownBadTest(self, msg=None, platform=None,
                          travis=None, interpreter=None):
@@ -205,9 +202,7 @@ class PillowTestCase(unittest.TestCase):
             print(os.environ.get('PILLOW_RUN_KNOWN_BAD', False))
             return
 
-        skip = True
-        if platform is not None:
-            skip = sys.platform.startswith(platform)
+        skip = sys.platform.startswith(platform) if platform is not None else True
         if travis is not None:
             skip = skip and (travis == bool(os.environ.get('TRAVIS', False)))
         if interpreter is not None:
@@ -250,17 +245,7 @@ class PillowLeakTestCase(PillowTestCase):
 
         from resource import getrusage, RUSAGE_SELF
         mem = getrusage(RUSAGE_SELF).ru_maxrss
-        if sys.platform == 'darwin':
-            # man 2 getrusage:
-            #     ru_maxrss
-            # This is the maximum resident set size utilized (in bytes).
-            return mem / 1024  # Kb
-        else:
-            # linux
-            # man 2 getrusage
-            #        ru_maxrss (since Linux 2.6.32)
-            #  This is the maximum resident set size used (in kilobytes).
-            return mem  # Kb
+        return mem / 1024 if sys.platform == 'darwin' else mem
 
     def _test_leak(self, core):
         start_mem = self._get_mem_usage()
@@ -348,8 +333,7 @@ def on_appveyor():
 
 
 if sys.platform == 'win32':
-    IMCONVERT = os.environ.get('MAGICK_HOME', '')
-    if IMCONVERT:
+    if IMCONVERT := os.environ.get('MAGICK_HOME', ''):
         IMCONVERT = os.path.join(IMCONVERT, 'convert.exe')
 else:
     IMCONVERT = 'convert'

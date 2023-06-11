@@ -40,14 +40,14 @@ t0 = time.time()
 threads = 20
 jobs = 100
 
-for i in range(threads):
+for _ in range(threads):
     w = Worker()
     w.start()
 
-for i in range(jobs):
+for _ in range(jobs):
     queue.put(im)
 
-for i in range(threads):
+for _ in range(threads):
     queue.put(None)
 
 queue.join()

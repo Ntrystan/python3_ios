@@ -24,10 +24,9 @@ def main():
         line = re.sub('/usr/local/bin/python',
                       '/usr/bin/env python', line)
         print(filename, ':', repr(line))
-        f = open(filename, "w")
-        f.write(line)
-        f.write(rest)
-        f.close()
+        with open(filename, "w") as f:
+            f.write(line)
+            f.write(rest)
 
 if __name__ == '__main__':
     main()

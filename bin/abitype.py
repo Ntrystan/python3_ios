@@ -51,7 +51,7 @@ def get_fields(start, real_end):
     while tokens[pos][0] in ('ws', 'comment'):
         pos += 1
     if tokens[pos][1] != 'PyVarObject_HEAD_INIT':
-        raise Exception('%s has no PyVarObject_HEAD_INIT' % name)
+        raise Exception(f'{name} has no PyVarObject_HEAD_INIT')
     while tokens[pos][1] != ')':
         pos += 1
     pos += 1
@@ -132,8 +132,7 @@ typeslots = [
 
 # Generate a PyType_Spec definition
 def make_slots(name, fields):
-    res = []
-    res.append('static PyType_Slot %s_slots[] = {' % name)
+    res = ['static PyType_Slot %s_slots[] = {' % name]
     # defaults for spec
     spec = { 'tp_itemsize':'0' }
     for i, val in enumerate(fields):
@@ -145,13 +144,16 @@ def make_slots(name, fields):
             continue
         res.append('    {Py_%s, %s},' % (typeslots[i], val))
     res.append('};')
-    res.append('static PyType_Spec %s_spec = {' % name)
-    res.append('    %s,' % spec['tp_name'])
-    res.append('    %s,' % spec['tp_basicsize'])
-    res.append('    %s,' % spec['tp_itemsize'])
-    res.append('    %s,' % spec['tp_flags'])
-    res.append('    %s_slots,' % name)
-    res.append('};\n')
+    res.extend(
+        (
+            'static PyType_Spec %s_spec = {' % name,
+            f"    {spec['tp_name']},",
+            f"    {spec['tp_basicsize']},",
+            f"    {spec['tp_itemsize']},",
+            f"    {spec['tp_flags']},",
+        )
+    )
+    res.extend((f'    {name}_slots,', '};\n'))
     return '\n'.join(res)
 
 
@@ -178,10 +180,7 @@ if __name__ == '__main__':
             # only in preprocess statements
             while tokens[-1][1].endswith('\\\n'):
                 nl = source.find('\n', pos)
-                if nl == -1:
-                    line = source[pos:]
-                else:
-                    line = source[pos:nl+1]
+                line = source[pos:] if nl == -1 else source[pos:nl+1]
                 tokens[-1][1] += line
                 pos += len(line)
 

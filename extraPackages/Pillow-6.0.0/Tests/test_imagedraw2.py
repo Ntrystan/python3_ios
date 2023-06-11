@@ -13,9 +13,9 @@ IMAGES_PATH = os.path.join("Tests", "images", "imagedraw")
 W, H = 100, 100
 
 # Bounding box points
-X0 = int(W / 4)
+X0 = W // 4
 X1 = int(X0 * 3)
-Y0 = int(H / 4)
+Y0 = H // 4
 Y1 = int(X0 * 3)
 
 # Two kinds of bounding box
@@ -53,7 +53,7 @@ class TestImageDraw(PillowTestCase):
         draw = ImageDraw2.Draw(im)
         pen = ImageDraw2.Pen("blue", width=2)
         brush = ImageDraw2.Brush("green")
-        expected = "Tests/images/imagedraw_ellipse_{}.png".format(mode)
+        expected = f"Tests/images/imagedraw_ellipse_{mode}.png"
 
         # Act
         draw.ellipse(bbox, pen, brush)

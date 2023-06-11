@@ -37,8 +37,7 @@ def treat_file(filename, outfp):
         if not line:
             break
         lineno = lineno + 1
-        m = matcher.search(line)
-        if m:
+        if m := matcher.search(line):
             tag = m.group(0) + '\177%d,%d\n' % (lineno, charno)
             tags.append(tag)
             size = size + len(tag)

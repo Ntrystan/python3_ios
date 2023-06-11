@@ -8,7 +8,7 @@ from pprint import pprint
 def _dump_state(args):
     print(sys.version)
     for name in args.attributes:
-        print("sys.{}:".format(name))
+        print(f"sys.{name}:")
         pprint(getattr(sys, name))
 
 def _add_dump_args(cmd):

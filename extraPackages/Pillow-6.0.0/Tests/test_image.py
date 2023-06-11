@@ -88,9 +88,13 @@ class TestImage(PillowTestCase):
     def test_fp_name(self):
         temp_file = self.tempfile("temp.jpg")
 
+
+
         class FP(object):
-            def write(a, b):
+            def write(self, b):
                 pass
+
+
         fp = FP()
         fp.name = temp_file
 

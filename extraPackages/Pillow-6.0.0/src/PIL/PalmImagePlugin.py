@@ -142,7 +142,7 @@ def _save(im, fp, filename):
             lambda x, shift=8-bpp, maxval=(1 << bpp)-1: maxval - (x >> shift))
         # we ignore the palette here
         im.mode = "P"
-        rawmode = "P;" + str(bpp)
+        rawmode = f"P;{str(bpp)}"
         version = 1
 
     elif im.mode == "L" and "bpp" in im.info and im.info["bpp"] in (1, 2, 4):
@@ -154,7 +154,7 @@ def _save(im, fp, filename):
         im = im.point(lambda x, maxval=(1 << bpp)-1: maxval - (x & maxval))
         # we ignore the palette here
         im.mode = "P"
-        rawmode = "P;" + str(bpp)
+        rawmode = f"P;{str(bpp)}"
         version = 1
 
     elif im.mode == "1":
@@ -166,7 +166,7 @@ def _save(im, fp, filename):
 
     else:
 
-        raise IOError("cannot write mode %s as Palm" % im.mode)
+        raise IOError(f"cannot write mode {im.mode} as Palm")
 
     #
     # make sure image data is available
@@ -183,7 +183,7 @@ def _save(im, fp, filename):
 
     flags = 0
     if im.mode == "P" and "custom-colormap" in im.info:
-        flags = flags & _FLAGS["custom-colormap"]
+        flags &= _FLAGS["custom-colormap"]
         colormapsize = 4 * 256 + 2
         colormapmode = im.palette.mode
         colormap = im.getdata().getpalette()

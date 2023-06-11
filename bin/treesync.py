@@ -70,8 +70,9 @@ def process(slave, master):
     print("slave ", slave)
     print("master", master)
     if not os.path.isdir(slave):
-        if not okay("create slave directory %s?" % slave,
-                    answer=create_directories):
+        if not okay(
+            f"create slave directory {slave}?", answer=create_directories
+        ):
             print("skipping master subdirectory", master)
             print("-- no corresponding slave", slave)
             return
@@ -91,12 +92,11 @@ def process(slave, master):
         slavename = os.path.join(slave, name)
         if name == "CVS":
             cvsdir = mastername
-        else:
-            if os.path.isdir(mastername) and not os.path.islink(mastername):
-                subdirs.append((slavename, mastername))
+        elif os.path.isdir(mastername) and not os.path.islink(mastername):
+            subdirs.append((slavename, mastername))
     if cvsdir:
         entries = os.path.join(cvsdir, "Entries")
-        for e in open(entries).readlines():
+        for e in open(entries):
             words = e.split('/')
             if words[0] == '' and words[1:]:
                 name = words[1]
@@ -125,7 +125,7 @@ def compare(slave, master):
     if not mf:
         print("Not updating missing master", master)
         return
-    if sf and mf:
+    if sf:
         if identical(sf, mf):
             return
     sft = mtime(sf)
@@ -178,13 +178,13 @@ def copy(src, dst, rmode="rb", wmode="wb", answer='ask'):
     print("     to", dst)
     if not okay("okay to copy? ", answer):
         return
-    f = open(src, rmode)
-    g = open(dst, wmode)
-    while 1:
-        buf = f.read(BUFSIZE)
-        if not buf: break
-        g.write(buf)
-    f.close()
+    with open(src, rmode) as f:
+        g = open(dst, wmode)
+        while 1:
+            if buf := f.read(BUFSIZE):
+                g.write(buf)
+            else:
+                break
     g.close()
 
 def raw_input(prompt):
@@ -197,8 +197,8 @@ def okay(prompt, answer='ask'):
     if not answer or answer[0] not in 'ny':
         answer = input(prompt)
         answer = answer.strip().lower()
-        if not answer:
-            answer = default_answer
+    if not answer:
+        answer = default_answer
     if answer[:1] == 'y':
         return 1
     if answer[:1] == 'n':

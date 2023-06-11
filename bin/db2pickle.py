@@ -119,12 +119,12 @@ def main(args):
     try:
         db = dbopen(dbfile, 'r')
     except bsddb.error:
-        sys.stderr.write("Unable to open %s.  " % dbfile)
+        sys.stderr.write(f"Unable to open {dbfile}.  ")
         sys.stderr.write("Check for format or version mismatch.\n")
         return 1
 
     for k in db.keys():
-        pickle.dump((k, db[k]), pfile, 1==1)
+        pickle.dump((k, db[k]), pfile, True)
 
     db.close()
     pfile.close()

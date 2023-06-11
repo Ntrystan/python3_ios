@@ -27,11 +27,9 @@ import mp_compile
 
 if sys.platform == "win32" and sys.version_info >= (3, 8):
     warnings.warn(
-        "Pillow does not yet support Python {}.{} and does not yet provide "
-        "prebuilt Windows binaries. We do not recommend building from "
-        "source on Windows.".format(sys.version_info.major,
-                                    sys.version_info.minor),
-        RuntimeWarning)
+        f"Pillow does not yet support Python {sys.version_info.major}.{sys.version_info.minor} and does not yet provide prebuilt Windows binaries. We do not recommend building from source on Windows.",
+        RuntimeWarning,
+    )
 
 
 _IMAGING = ("decode", "encode", "map", "display", "outline", "path")
@@ -78,9 +76,9 @@ def _find_library_dirs_ldconfig():
 
     if sys.platform.startswith("linux") or sys.platform.startswith("gnu"):
         if struct.calcsize('l') == 4:
-            machine = os.uname()[4] + '-32'
+            machine = f'{os.uname()[4]}-32'
         else:
-            machine = os.uname()[4] + '-64'
+            machine = f'{os.uname()[4]}-64'
         mach_map = {
             'x86_64-64': 'libc6,x86-64',
             'ppc64-64': 'libc6,64bit',
@@ -237,8 +235,7 @@ class pil_build_ext(build_ext):
             return getattr(self, feat) is None
 
         def __iter__(self):
-            for x in self.features:
-                yield x
+            yield from self.features
 
     feature = feature()
 
@@ -257,8 +254,8 @@ class pil_build_ext(build_ext):
         self.add_imaging_libs = ""
         build_ext.initialize_options(self)
         for x in self.feature:
-            setattr(self, 'disable_%s' % x, None)
-            setattr(self, 'enable_%s' % x, None)
+            setattr(self, f'disable_{x}', None)
+            setattr(self, f'enable_{x}', None)
 
     def finalize_options(self):
         build_ext.finalize_options(self)
@@ -272,15 +269,13 @@ class pil_build_ext(build_ext):
             # number of jobs.
             self.parallel = mp_compile.MAX_PROCS
         for x in self.feature:
-            if getattr(self, 'disable_%s' % x):
+            if getattr(self, f'disable_{x}'):
                 setattr(self.feature, x, False)
                 self.feature.required.discard(x)
                 _dbg('Disabling %s', x)
-                if getattr(self, 'enable_%s' % x):
-                    raise ValueError(
-                        'Conflicting options: --enable-%s and --disable-%s' %
-                        (x, x))
-            if getattr(self, 'enable_%s' % x):
+                if getattr(self, f'enable_{x}'):
+                    raise ValueError(f'Conflicting options: --enable-{x} and --disable-{x}')
+            if getattr(self, f'enable_{x}'):
                 _dbg('Requiring %s', x)
                 self.feature.required.add(x)
 

@@ -46,8 +46,12 @@ rep = sys.stdout.write
 
 def usage():
     progname = sys.argv[0]
-    err('Usage: ' + progname +
-              ' [-c] [-r] [-s file] ... file-or-directory ...\n')
+    err(
+        (
+            f'Usage: {progname}'
+            + ' [-c] [-r] [-s file] ... file-or-directory ...\n'
+        )
+    )
     err('\n')
     err('-c           : substitute inside comments\n')
     err('-r           : reverse direction for following -s options\n')
@@ -63,7 +67,7 @@ def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'crs:')
     except getopt.error as msg:
-        err('Options error: ' + str(msg) + '\n')
+        err(f'Options error: {str(msg)}' + '\n')
         usage()
         sys.exit(2)
     bad = 0
@@ -83,8 +87,7 @@ def main():
         elif os.path.islink(arg):
             err(arg + ': will not process symbolic links\n')
             bad = 1
-        else:
-            if fix(arg): bad = 1
+        elif fix(arg): bad = 1
     sys.exit(bad)
 
 # Change this regular expression to select a different set of files
@@ -98,7 +101,7 @@ def recursedown(dirname):
     try:
         names = os.listdir(dirname)
     except OSError as msg:
-        err(dirname + ': cannot list directory: ' + str(msg) + '\n')
+        err(f'{dirname}: cannot list directory: {str(msg)}' + '\n')
         return 1
     names.sort()
     subdirs = []
@@ -125,10 +128,10 @@ def fix(filename):
         try:
             f = open(filename, 'r')
         except IOError as msg:
-            err(filename + ': cannot open: ' + str(msg) + '\n')
+            err(f'{filename}: cannot open: {str(msg)}' + '\n')
             return 1
         head, tail = os.path.split(filename)
-        tempname = os.path.join(head, '@' + tail)
+        tempname = os.path.join(head, f'@{tail}')
         g = None
     # If we find a match, we rewind the file and start over but
     # now copy everything to a temp file.
@@ -150,8 +153,7 @@ def fix(filename):
                     g = open(tempname, 'w')
                 except IOError as msg:
                     f.close()
-                    err(tempname+': cannot create: '+
-                        str(msg)+'\n')
+                    err((f'{tempname}: cannot create: {str(msg)}' + '\n'))
                     return 1
                 f.seek(0)
                 lineno = 0
@@ -159,8 +161,8 @@ def fix(filename):
                 rep(filename + ':\n')
                 continue # restart from the beginning
             rep(repr(lineno) + '\n')
-            rep('< ' + line)
-            rep('> ' + newline)
+            rep(f'< {line}')
+            rep(f'> {newline}')
         if g is not None:
             g.write(newline)
 
@@ -177,17 +179,17 @@ def fix(filename):
         statbuf = os.stat(filename)
         os.chmod(tempname, statbuf[ST_MODE] & 0o7777)
     except OSError as msg:
-        err(tempname + ': warning: chmod failed (' + str(msg) + ')\n')
+        err(f'{tempname}: warning: chmod failed ({str(msg)}' + ')\n')
     # Then make a backup of the original file as filename~
     try:
-        os.rename(filename, filename + '~')
+        os.rename(filename, f'{filename}~')
     except OSError as msg:
-        err(filename + ': warning: backup failed (' + str(msg) + ')\n')
+        err(f'{filename}: warning: backup failed ({str(msg)}' + ')\n')
     # Now move the temp file to the original file
     try:
         os.rename(tempname, filename)
     except OSError as msg:
-        err(filename + ': rename failed (' + str(msg) + ')\n')
+        err(f'{filename}: rename failed ({str(msg)}' + ')\n')
         return 1
     # Return success
     return 0
@@ -203,12 +205,12 @@ CommentEnd = r'\*/'
 Hexnumber = '0[xX][0-9a-fA-F]*[uUlL]*'
 Octnumber = '0[0-7]*[uUlL]*'
 Decnumber = '[1-9][0-9]*[uUlL]*'
-Intnumber = Hexnumber + '|' + Octnumber + '|' + Decnumber
+Intnumber = f'{Hexnumber}|{Octnumber}|{Decnumber}'
 Exponent = '[eE][-+]?[0-9]+'
 Pointfloat = r'([0-9]+\.[0-9]*|\.[0-9]+)(' + Exponent + r')?'
-Expfloat = '[0-9]+' + Exponent
-Floatnumber = Pointfloat + '|' + Expfloat
-Number = Floatnumber + '|' + Intnumber
+Expfloat = f'[0-9]+{Exponent}'
+Floatnumber = f'{Pointfloat}|{Expfloat}'
+Number = f'{Floatnumber}|{Intnumber}'
 
 # Anything else is an operator -- don't list this explicitly because of '/*'
 
@@ -279,7 +281,7 @@ def addsubst(substfile):
     try:
         fp = open(substfile, 'r')
     except IOError as msg:
-        err(substfile + ': cannot read substfile: ' + str(msg) + '\n')
+        err(f'{substfile}: cannot read substfile: {str(msg)}' + '\n')
         sys.exit(1)
     lineno = 0
     while 1:
@@ -293,7 +295,7 @@ def addsubst(substfile):
         words = line[:i].split()
         if not words: continue
         if len(words) == 3 and words[0] == 'struct':
-            words[:2] = [words[0] + ' ' + words[1]]
+            words[:2] = [f'{words[0]} {words[1]}']
         elif len(words) != 2:
             err(substfile + '%s:%r: warning: bad line: %r' % (substfile, lineno, line))
             continue

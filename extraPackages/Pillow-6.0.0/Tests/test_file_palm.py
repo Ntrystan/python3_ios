@@ -9,7 +9,7 @@ class TestFilePalm(PillowTestCase):
     def helper_save_as_palm(self, mode):
         # Arrange
         im = hopper(mode)
-        outfile = self.tempfile("temp_" + mode + ".palm")
+        outfile = self.tempfile(f"temp_{mode}.palm")
 
         # Act
         im.save(outfile)

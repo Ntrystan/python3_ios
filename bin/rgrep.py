@@ -25,7 +25,7 @@ def main():
     try:
         prog = re.compile(pattern, reflags)
     except re.error as msg:
-        usage("error in regular expression: %s" % msg)
+        usage(f"error in regular expression: {msg}")
     try:
         f = open(filename)
     except IOError as msg:

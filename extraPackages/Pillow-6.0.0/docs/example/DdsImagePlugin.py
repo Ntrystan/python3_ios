@@ -159,19 +159,17 @@ def _dxtc_alpha(a0, a1, ac0, ac1, ai):
         ac = (ac1 >> (ai - 16)) & 7
 
     if ac == 0:
-        alpha = a0
+        return a0
     elif ac == 1:
-        alpha = a1
+        return a1
     elif a0 > a1:
-        alpha = ((8 - ac) * a0 + (ac - 1) * a1) // 7
+        return ((8 - ac) * a0 + (ac - 1) * a1) // 7
     elif ac == 6:
-        alpha = 0
+        return 0
     elif ac == 7:
-        alpha = 0xff
+        return 0xff
     else:
-        alpha = ((6 - ac) * a0 + (ac - 1) * a1) // 5
-
-    return alpha
+        return ((6 - ac) * a0 + (ac - 1) * a1) // 5
 
 
 def _dxt5(data, width, height):
@@ -217,7 +215,7 @@ class DdsImageFile(ImageFile.ImageFile):
             raise IOError("Unsupported header size %r" % (header_size))
         header_bytes = self.fp.read(header_size - 4)
         if len(header_bytes) != 120:
-            raise IOError("Incomplete header: %s bytes" % len(header_bytes))
+            raise IOError(f"Incomplete header: {len(header_bytes)} bytes")
         header = BytesIO(header_bytes)
 
         flags, height, width = struct.unpack("<3I", header.read(12))

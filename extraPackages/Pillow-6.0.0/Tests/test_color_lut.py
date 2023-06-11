@@ -457,8 +457,9 @@ class TestTransformColorLut3D(PillowTestCase):
         self.assertEqual(tuple(lut.size), tuple(source.size))
         self.assertEqual(len(lut.table), len(source.table))
         self.assertNotEqual(lut.table, source.table)
-        self.assertEqual(lut.table[0:10], [
-            0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0])
+        self.assertEqual(
+            lut.table[:10], [0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
+        )
 
     def test_3_to_4_channels(self):
         source = ImageFilter.Color3DLUT.generate(
@@ -467,9 +468,27 @@ class TestTransformColorLut3D(PillowTestCase):
         self.assertEqual(tuple(lut.size), tuple(source.size))
         self.assertNotEqual(len(lut.table), len(source.table))
         self.assertNotEqual(lut.table, source.table)
-        self.assertEqual(lut.table[0:16], [
-            0.0, 0.0, 0.0, 1,  0.2**2, 0.0, 0.0, 1,
-            0.4**2, 0.0, 0.0, 1,  0.6**2, 0.0, 0.0, 1])
+        self.assertEqual(
+            lut.table[:16],
+            [
+                0.0,
+                0.0,
+                0.0,
+                1,
+                0.2**2,
+                0.0,
+                0.0,
+                1,
+                0.4**2,
+                0.0,
+                0.0,
+                1,
+                0.6**2,
+                0.0,
+                0.0,
+                1,
+            ],
+        )
 
     def test_4_to_3_channels(self):
         source = ImageFilter.Color3DLUT.generate(
@@ -479,9 +498,29 @@ class TestTransformColorLut3D(PillowTestCase):
         self.assertEqual(tuple(lut.size), tuple(source.size))
         self.assertNotEqual(len(lut.table), len(source.table))
         self.assertNotEqual(lut.table, source.table)
-        self.assertEqual(lut.table[0:18], [
-            1.0, 1.0, 1.0,  0.75, 1.0, 1.0,  0.0, 1.0, 1.0,
-            1.0, 0.96, 1.0,  0.75, 0.96, 1.0,  0.0, 0.96, 1.0])
+        self.assertEqual(
+            lut.table[:18],
+            [
+                1.0,
+                1.0,
+                1.0,
+                0.75,
+                1.0,
+                1.0,
+                0.0,
+                1.0,
+                1.0,
+                1.0,
+                0.96,
+                1.0,
+                0.75,
+                0.96,
+                1.0,
+                0.0,
+                0.96,
+                1.0,
+            ],
+        )
 
     def test_4_to_4_channels(self):
         source = ImageFilter.Color3DLUT.generate(
@@ -490,9 +529,27 @@ class TestTransformColorLut3D(PillowTestCase):
         self.assertEqual(tuple(lut.size), tuple(source.size))
         self.assertEqual(len(lut.table), len(source.table))
         self.assertNotEqual(lut.table, source.table)
-        self.assertEqual(lut.table[0:16], [
-            0.0, 0.0, 0.0, 0.5,  0.2**2, 0.0, 0.0, 0.5,
-            0.4**2, 0.0, 0.0, 0.5,  0.6**2, 0.0, 0.0, 0.5])
+        self.assertEqual(
+            lut.table[:16],
+            [
+                0.0,
+                0.0,
+                0.0,
+                0.5,
+                0.2**2,
+                0.0,
+                0.0,
+                0.5,
+                0.4**2,
+                0.0,
+                0.0,
+                0.5,
+                0.6**2,
+                0.0,
+                0.0,
+                0.5,
+            ],
+        )
 
     def test_with_normals_3_channels(self):
         source = ImageFilter.Color3DLUT.generate(
@@ -503,9 +560,29 @@ class TestTransformColorLut3D(PillowTestCase):
         self.assertEqual(tuple(lut.size), tuple(source.size))
         self.assertEqual(len(lut.table), len(source.table))
         self.assertNotEqual(lut.table, source.table)
-        self.assertEqual(lut.table[0:18], [
-            0.0, 0.0, 0.0,  0.16, 0.0, 0.0,  0.24, 0.0, 0.0,
-            0.24, 0.0, 0.0,  0.8 - (0.8**2), 0, 0,  0, 0, 0])
+        self.assertEqual(
+            lut.table[:18],
+            [
+                0.0,
+                0.0,
+                0.0,
+                0.16,
+                0.0,
+                0.0,
+                0.24,
+                0.0,
+                0.0,
+                0.24,
+                0.0,
+                0.0,
+                0.8 - (0.8**2),
+                0,
+                0,
+                0,
+                0,
+                0,
+            ],
+        )
 
     def test_with_normals_4_channels(self):
         source = ImageFilter.Color3DLUT.generate(
@@ -516,6 +593,24 @@ class TestTransformColorLut3D(PillowTestCase):
         self.assertEqual(tuple(lut.size), tuple(source.size))
         self.assertEqual(len(lut.table), len(source.table))
         self.assertNotEqual(lut.table, source.table)
-        self.assertEqual(lut.table[0:16], [
-            0.0, 0.0, 0.0, 0.5,  0.25, 0.0, 0.0, 0.5,
-            0.0, 0.0, 0.0, 0.5,  0.0, 0.16, 0.0, 0.5])
+        self.assertEqual(
+            lut.table[:16],
+            [
+                0.0,
+                0.0,
+                0.0,
+                0.5,
+                0.25,
+                0.0,
+                0.0,
+                0.5,
+                0.0,
+                0.0,
+                0.0,
+                0.5,
+                0.0,
+                0.16,
+                0.0,
+                0.5,
+            ],
+        )

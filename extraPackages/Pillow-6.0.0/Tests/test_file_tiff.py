@@ -130,12 +130,11 @@ class TestFileTiff(PillowTestCase):
         for resolutionUnit, dpi in ((None, (72, 73)),
                                     (2, (72, 73)),
                                     (3, (183, 185))):
-            im = Image.open(
-                "Tests/images/hopper_roundDown_"+str(resolutionUnit)+".tif")
+            im = Image.open(f"Tests/images/hopper_roundDown_{str(resolutionUnit)}.tif")
             self.assertEqual(im.tag_v2.get(RESOLUTION_UNIT), resolutionUnit)
             self.assertEqual(im.info['dpi'], (dpi[0], dpi[0]))
 
-            im = Image.open("Tests/images/hopper_roundUp_"+str(resolutionUnit)+".tif")
+            im = Image.open(f"Tests/images/hopper_roundUp_{str(resolutionUnit)}.tif")
             self.assertEqual(im.tag_v2.get(RESOLUTION_UNIT), resolutionUnit)
             self.assertEqual(im.info['dpi'], (dpi[1], dpi[1]))
 
@@ -335,9 +334,9 @@ class TestFileTiff(PillowTestCase):
         self.assertEqual(len_before, len_after + 1)
 
     def test_load_byte(self):
+        data = b"abc"
         for legacy_api in [False, True]:
             ifd = TiffImagePlugin.ImageFileDirectory_v2()
-            data = b"abc"
             ret = ifd.load_byte(data, legacy_api)
             self.assertEqual(ret, b"abc")
 
@@ -514,8 +513,8 @@ class TestFileTiff(PillowTestCase):
 
         # Test appending using a generator
         def imGenerator(ims):
-            for im in ims:
-                yield im
+            yield from ims
+
         mp = io.BytesIO()
         im.save(mp, format="TIFF", save_all=True,
                 append_images=imGenerator(ims))

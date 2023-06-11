@@ -21,7 +21,7 @@ def main():
         if len(args) > 1:
             if not first: print()
             first = 0
-            print(arg + ':')
+            print(f'{arg}:')
     lll(arg)
 
 if __name__ == '__main__':

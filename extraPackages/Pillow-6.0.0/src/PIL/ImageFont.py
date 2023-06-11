@@ -231,9 +231,7 @@ class TransposedFont(object):
 
     def getmask(self, text, mode="", *args, **kwargs):
         im = self.font.getmask(text, mode, *args, **kwargs)
-        if self.orientation is not None:
-            return im.transpose(self.orientation)
-        return im
+        return im.transpose(self.orientation) if self.orientation is not None else im
 
 
 def load(filename):
@@ -283,11 +281,7 @@ def truetype(font=None, size=10, index=0, encoding="",
 
         dirs = []
         if sys.platform == "win32":
-            # check the windows font repository
-            # NOTE: must use uppercase WINDIR, to work around bugs in
-            # 1.5.2's os.environ.get()
-            windir = os.environ.get("WINDIR")
-            if windir:
+            if windir := os.environ.get("WINDIR"):
                 dirs.append(os.path.join(windir, "fonts"))
         elif sys.platform in ('linux', 'linux2'):
             lindirs = os.environ.get("XDG_DATA_DIRS", "")
@@ -337,10 +331,7 @@ def load_path(filename):
     for directory in sys.path:
         if isDirectory(directory):
             if not isinstance(filename, str):
-                if py3:
-                    filename = filename.decode("utf-8")
-                else:
-                    filename = filename.encode("utf-8")
+                filename = filename.decode("utf-8") if py3 else filename.encode("utf-8")
             try:
                 return load(os.path.join(directory, filename))
             except IOError:

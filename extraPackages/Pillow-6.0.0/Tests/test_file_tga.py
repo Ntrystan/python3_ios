@@ -23,9 +23,7 @@ class TestFileTga(PillowTestCase):
 
     def test_sanity(self):
         for mode in self._MODES:
-            png_paths = glob(
-                os.path.join(
-                    _TGA_DIR_COMMON, "*x*_{}.png".format(mode.lower())))
+            png_paths = glob(os.path.join(_TGA_DIR_COMMON, f"*x*_{mode.lower()}.png"))
 
             for png_path in png_paths:
                 reference_im = Image.open(png_path)
@@ -33,8 +31,7 @@ class TestFileTga(PillowTestCase):
 
                 path_no_ext = os.path.splitext(png_path)[0]
                 for origin, rle in product(self._ORIGINS, (True, False)):
-                    tga_path = "{}_{}_{}.tga".format(
-                        path_no_ext, origin, "rle" if rle else "raw")
+                    tga_path = f'{path_no_ext}_{origin}_{"rle" if rle else "raw"}.tga'
 
                     original_im = Image.open(tga_path)
                     self.assertEqual(original_im.format, "TGA")

@@ -103,10 +103,7 @@ class HTMLNode:
     def __init__(self, dir, name, topname, title, next, prev, up):
         self.dirname = dir
         self.name = name
-        if topname:
-            self.topname = topname
-        else:
-            self.topname = name
+        self.topname = topname if topname else name
         self.title = title
         self.next = next
         self.prev = prev
@@ -118,11 +115,10 @@ class HTMLNode:
             self.lines.append(line)
 
     def flush(self):
-        fp = open(self.dirname + '/' + makefile(self.name), 'w')
-        fp.write(self.prologue)
-        fp.write(self.text)
-        fp.write(self.epilogue)
-        fp.close()
+        with open(f'{self.dirname}/{makefile(self.name)}', 'w') as fp:
+            fp.write(self.prologue)
+            fp.write(self.text)
+            fp.write(self.epilogue)
 
     def link(self, label, nodename, rel=None, rev=None):
         if nodename:
@@ -131,11 +127,19 @@ class HTMLNode:
                 title = ''
             else:
                 addr = makefile(nodename)
-                title = ' TITLE="%s"' % nodename
-            self.write(label, ': <A HREF="', addr, '"', \
-                       rel and (' REL=' + rel) or "", \
-                       rev and (' REV=' + rev) or "", \
-                       title, '>', nodename, '</A>  \n')
+                title = f' TITLE="{nodename}"'
+            self.write(
+                label,
+                ': <A HREF="',
+                addr,
+                '"',
+                rel and f' REL={rel}' or "",
+                rev and f' REV={rev}' or "",
+                title,
+                '>',
+                nodename,
+                '</A>  \n',
+            )
 
     def finalize(self):
         length = len(self.lines)
@@ -279,8 +283,7 @@ class TexinfoParser:
                     print('*** EOF before @bye')
                 break
             lineno = lineno + 1
-            mo = cmprog.match(line)
-            if mo:
+            if mo := cmprog.match(line):
                 a, b = mo.span(1)
                 cmd = line[a:b]
                 if cmd in ('noindent', 'refill'):
@@ -292,8 +295,8 @@ class TexinfoParser:
                         accu = []
                     self.command(line, mo)
             elif blprog.match(line) and \
-                 'format' not in self.stack and \
-                 'example' not in self.stack:
+                     'format' not in self.stack and \
+                     'example' not in self.stack:
                 if accu:
                     if not self.skip:
                         self.process(accu)
@@ -402,8 +405,7 @@ class TexinfoParser:
                 g, h = mo.span(4)
                 label = line[a:b]
                 nodename = line[c:d]
-                if nodename[0] == ':': nodename = label
-                else: nodename = line[e:f]
+                nodename = label if nodename[0] == ':' else line[e:f]
                 punct = line[g:h]
                 self.write('  <LI><A HREF="',
                            makefile(nodename),
@@ -436,8 +438,7 @@ class TexinfoParser:
         n = len(text)
         while i < n:
             start = i
-            mo = spprog.search(text, i)
-            if mo:
+            if mo := spprog.search(text, i):
                 i = mo.start()
             else:
                 self.write(text[start:])
@@ -468,7 +469,7 @@ class TexinfoParser:
                 cmd = stack[-1]
                 del stack[-1]
                 try:
-                    method = getattr(self, 'close_' + cmd)
+                    method = getattr(self, f'close_{cmd}')
                 except AttributeError:
                     self.unknown_close(cmd)
                     continue
@@ -483,11 +484,7 @@ class TexinfoParser:
                 # @ plus non-letter: literal next character
                 i = i+1
                 c = text[start:i]
-                if c == ':':
-                    # `@:' means no extra space after
-                    # preceding `.', `?', `!' or `:'
-                    pass
-                else:
+                if c != ':':
                     # `@.' means a sentence-ending period;
                     # `@@', `@{', `@}' quote `@', `{', `}'
                     self.write(c)
@@ -497,14 +494,14 @@ class TexinfoParser:
                 i = i+1
                 stack.append(cmd)
                 try:
-                    method = getattr(self, 'open_' + cmd)
+                    method = getattr(self, f'open_{cmd}')
                 except AttributeError:
                     self.unknown_open(cmd)
                     continue
                 method()
                 continue
             try:
-                method = getattr(self, 'handle_' + cmd)
+                method = getattr(self, f'handle_{cmd}')
             except AttributeError:
                 self.unknown_handle(cmd)
                 continue
@@ -515,30 +512,21 @@ class TexinfoParser:
     # --- Handle unknown embedded @-commands ---
 
     def unknown_open(self, cmd):
-        print('*** No open func for @' + cmd + '{...}')
+        print(f'*** No open func for @{cmd}' + '{...}')
         cmd = cmd + '{'
         self.write('@', cmd)
-        if cmd not in self.unknown:
-            self.unknown[cmd] = 1
-        else:
-            self.unknown[cmd] = self.unknown[cmd] + 1
+        self.unknown[cmd] = 1 if cmd not in self.unknown else self.unknown[cmd] + 1
 
     def unknown_close(self, cmd):
-        print('*** No close func for @' + cmd + '{...}')
+        print(f'*** No close func for @{cmd}' + '{...}')
         cmd = '}' + cmd
         self.write('}')
-        if cmd not in self.unknown:
-            self.unknown[cmd] = 1
-        else:
-            self.unknown[cmd] = self.unknown[cmd] + 1
+        self.unknown[cmd] = 1 if cmd not in self.unknown else self.unknown[cmd] + 1
 
     def unknown_handle(self, cmd):
-        print('*** No handler for @' + cmd)
+        print(f'*** No handler for @{cmd}')
         self.write('@', cmd)
-        if cmd not in self.unknown:
-            self.unknown[cmd] = 1
-        else:
-            self.unknown[cmd] = self.unknown[cmd] + 1
+        self.unknown[cmd] = 1 if cmd not in self.unknown else self.unknown[cmd] + 1
 
     # XXX The following sections should be ordered as the texinfo docs
 
@@ -715,7 +703,7 @@ class TexinfoParser:
         title = args[4]
         href = makefile(nodename)
         if file:
-            href = '../' + file + '/' + href
+            href = f'../{file}/{href}'
         self.write('<A HREF="', href, '">', label, '</A>')
 
     # rpyron 2002-05-07  uref support
@@ -756,22 +744,26 @@ class TexinfoParser:
         # which is what 'filename' gives us. However, we need
         # to find it relative to our own current directory,
         # so we construct 'imagename'.
-        imagelocation = self.dirname + '/' + filename
+        imagelocation = f'{self.dirname}/{filename}'
 
-        if   os.path.exists(imagelocation+'.png'):
+        if os.path.exists(f'{imagelocation}.png'):
             filename += '.png'
-        elif os.path.exists(imagelocation+'.jpg'):
+        elif os.path.exists(f'{imagelocation}.jpg'):
             filename += '.jpg'
-        elif os.path.exists(imagelocation+'.gif'):   # MySQL uses GIF files
+        elif os.path.exists(f'{imagelocation}.gif'):   # MySQL uses GIF files
             filename += '.gif'
         else:
-            print("*** Cannot find image " + imagelocation)
+            print(f"*** Cannot find image {imagelocation}")
         #TODO: what is 'ext'?
-        self.write('<IMG SRC="', filename, '"',                     \
-                    width  and (' WIDTH="'  + width  + '"') or "",  \
-                    height and (' HEIGHT="' + height + '"') or "",  \
-                    alt    and (' ALT="'    + alt    + '"') or "",  \
-                    '/>' )
+        self.write(
+            '<IMG SRC="',
+            filename,
+            '"',
+            width and f' WIDTH="{width}"' or "",
+            height and f' HEIGHT="{height}"' or "",
+            alt and f' ALT="{alt}"' or "",
+            '/>',
+        )
         self.htmlhelp.addimage(imagelocation)
 
 
@@ -872,13 +864,12 @@ class TexinfoParser:
         cmd = line[a:b]
         args = line[b:].strip()
         if self.debugging > 1:
-            print('!'*self.debugging, 'command:', self.skip, self.stack, \
-                  '@' + cmd, args)
+            print('!'*self.debugging, 'command:', self.skip, self.stack, f'@{cmd}', args)
         try:
-            func = getattr(self, 'do_' + cmd)
+            func = getattr(self, f'do_{cmd}')
         except AttributeError:
             try:
-                func = getattr(self, 'bgn_' + cmd)
+                func = getattr(self, f'bgn_{cmd}')
             except AttributeError:
                 # don't complain if we are skipping anyway
                 if not self.skip:
@@ -891,36 +882,29 @@ class TexinfoParser:
             func(args)
 
     def unknown_cmd(self, cmd, args):
-        print('*** unknown', '@' + cmd, args)
-        if cmd not in self.unknown:
-            self.unknown[cmd] = 1
-        else:
-            self.unknown[cmd] = self.unknown[cmd] + 1
+        print('*** unknown', f'@{cmd}', args)
+        self.unknown[cmd] = 1 if cmd not in self.unknown else self.unknown[cmd] + 1
 
     def do_end(self, args):
-        words = args.split()
-        if not words:
-            print('*** @end w/o args')
-        else:
+        if words := args.split():
             cmd = words[0]
             if not self.stack or self.stack[-1] != cmd:
                 print('*** @end', cmd, 'unexpected')
             else:
                 del self.stack[-1]
             try:
-                func = getattr(self, 'end_' + cmd)
+                func = getattr(self, f'end_{cmd}')
             except AttributeError:
                 self.unknown_end(cmd)
                 return
             func()
+        else:
+            print('*** @end w/o args')
 
     def unknown_end(self, cmd):
-        cmd = 'end ' + cmd
-        print('*** unknown', '@' + cmd)
-        if cmd not in self.unknown:
-            self.unknown[cmd] = 1
-        else:
-            self.unknown[cmd] = self.unknown[cmd] + 1
+        cmd = f'end {cmd}'
+        print('*** unknown', f'@{cmd}')
+        self.unknown[cmd] = 1 if cmd not in self.unknown else self.unknown[cmd] + 1
 
     # --- Comments ---
 
@@ -944,10 +928,7 @@ class TexinfoParser:
     def do_set(self, args):
         fields = args.split(' ')
         key = fields[0]
-        if len(fields) == 1:
-            value = 1
-        else:
-            value = ' '.join(fields[1:])
+        value = 1 if len(fields) == 1 else ' '.join(fields[1:])
         self.values[key] = value
 
     def do_clear(self, args):
@@ -1049,11 +1030,10 @@ class TexinfoParser:
         while len(parts) < 4: parts.append('')
         self.nodelinks = parts
         [name, next, prev, up] = parts[:4]
-        file = self.dirname + '/' + makefile(name)
+        file = f'{self.dirname}/{makefile(name)}'
         if file in self.filenames:
             print('*** Filename already in use: ', file)
-        else:
-            if self.debugging: print('!'*self.debugging, '--- writing', file)
+        elif self.debugging: print('!'*self.debugging, '--- writing', file)
         self.filenames[file] = 1
         # self.nodefp = open(file, 'w')
         self.nodename = name
@@ -1061,42 +1041,41 @@ class TexinfoParser:
             self.nodestack[-1].cont = self.nodename
         if not self.topname: self.topname = name
         title = name
-        if self.title: title = title + ' -- ' + self.title
+        if self.title:
+            title = f'{title} -- {self.title}'
         self.node = self.Node(self.dirname, self.nodename, self.topname,
                               title, next, prev, up)
         self.htmlhelp.addnode(self.nodename,next,prev,up,file)
 
     def link(self, label, nodename):
         if nodename:
-            if nodename.lower() == '(dir)':
-                addr = '../dir.html'
-            else:
-                addr = makefile(nodename)
+            addr = '../dir.html' if nodename.lower() == '(dir)' else makefile(nodename)
             self.write(label, ': <A HREF="', addr, '" TYPE="',
                        label, '">', nodename, '</A>  \n')
 
     # --- Sectioning commands ---
 
     def popstack(self, type):
-        if (self.node):
-            self.node.type = type
-            while self.nodestack:
-                if self.nodestack[-1].type > type:
-                    self.nodestack[-1].finalize()
-                    self.nodestack[-1].flush()
-                    del self.nodestack[-1]
-                elif self.nodestack[-1].type == type:
-                    if not self.nodestack[-1].next:
-                        self.nodestack[-1].next = self.node.name
-                    if not self.node.prev:
-                        self.node.prev = self.nodestack[-1].name
-                    self.nodestack[-1].finalize()
-                    self.nodestack[-1].flush()
-                    del self.nodestack[-1]
-                else:
-                    if type > 1 and not self.node.up:
-                        self.node.up = self.nodestack[-1].name
-                    break
+        if not self.node:
+            return
+        self.node.type = type
+        while self.nodestack:
+            if self.nodestack[-1].type > type:
+                self.nodestack[-1].finalize()
+                self.nodestack[-1].flush()
+                del self.nodestack[-1]
+            elif self.nodestack[-1].type == type:
+                if not self.nodestack[-1].next:
+                    self.nodestack[-1].next = self.node.name
+                if not self.node.prev:
+                    self.node.prev = self.nodestack[-1].name
+                self.nodestack[-1].finalize()
+                self.nodestack[-1].flush()
+                del self.nodestack[-1]
+            else:
+                if type > 1 and not self.node.up:
+                    self.node.up = self.nodestack[-1].name
+                break
 
     def do_chapter(self, args):
         self.heading('H1', args, 0)
@@ -1162,7 +1141,7 @@ class TexinfoParser:
             x = ''
             for i in self.numbering:
                 x = x + repr(i) + '.'
-            args = x + ' ' + args
+            args = f'{x} {args}'
             self.contents.append((level, args, self.nodename))
         self.write('<', type, '>')
         self.expand(args)
@@ -1237,18 +1216,23 @@ class TexinfoParser:
         words = splitwords(args, 2)
         [category, name], rest = words[:2], words[2:]
         self.expand('@b{%s}' % name)
-        for word in rest: self.expand(' ' + makevar(word))
+        for word in rest:
+            self.expand(f' {makevar(word)}')
         #self.expand(' -- ' + category)
         self.write('\n<DD>')
         self.index('fn', name)
 
-    def bgn_defun(self, args): self.bgn_deffn('Function ' + args)
+    def bgn_defun(self, args):
+        self.bgn_deffn(f'Function {args}')
     end_defun = end_deffn
-    def do_defunx(self, args): self.do_deffnx('Function ' + args)
+    def do_defunx(self, args):
+        self.do_deffnx(f'Function {args}')
 
-    def bgn_defmac(self, args): self.bgn_deffn('Macro ' + args)
+    def bgn_defmac(self, args):
+        self.bgn_deffn(f'Macro {args}')
     end_defmac = end_deffn
-    def do_defmacx(self, args): self.do_deffnx('Macro ' + args)
+    def do_defmacx(self, args):
+        self.do_deffnx(f'Macro {args}')
 
     def bgn_defspec(self, args): self.bgn_deffn('{Special Form} ' + args)
     end_defspec = end_deffn
@@ -1266,14 +1250,17 @@ class TexinfoParser:
         [category, name], rest = words[:2], words[2:]
         self.expand('@code{%s}' % name)
         # If there are too many arguments, show them
-        for word in rest: self.expand(' ' + word)
+        for word in rest:
+            self.expand(f' {word}')
         #self.expand(' -- ' + category)
         self.write('\n<DD>')
         self.index('vr', name)
 
-    def bgn_defvar(self, args): self.bgn_defvr('Variable ' + args)
+    def bgn_defvar(self, args):
+        self.bgn_defvr(f'Variable {args}')
     end_defvar = end_defvr
-    def do_defvarx(self, args): self.do_defvrx('Variable ' + args)
+    def do_defvarx(self, args):
+        self.do_defvrx(f'Variable {args}')
 
     def bgn_defopt(self, args): self.bgn_defvr('{User Option} ' + args)
     end_defopt = end_defvr
@@ -1292,15 +1279,18 @@ class TexinfoParser:
         words = splitwords(args, 3)
         [category, datatype, name], rest = words[:3], words[3:]
         self.expand('@code{%s} @b{%s}' % (datatype, name))
-        for word in rest: self.expand(' ' + makevar(word))
+        for word in rest:
+            self.expand(f' {makevar(word)}')
         #self.expand(' -- ' + category)
         self.write('\n<DD>')
         self.index('fn', name)
 
 
-    def bgn_deftypefun(self, args): self.bgn_deftypefn('Function ' + args)
+    def bgn_deftypefun(self, args):
+        self.bgn_deftypefn(f'Function {args}')
     end_deftypefun = end_deftypefn
-    def do_deftypefunx(self, args): self.do_deftypefnx('Function ' + args)
+    def do_deftypefunx(self, args):
+        self.do_deftypefnx(f'Function {args}')
 
     def bgn_deftypevr(self, args):
         self.write('<DL>')
@@ -1314,16 +1304,17 @@ class TexinfoParser:
         [category, datatype, name], rest = words[:3], words[3:]
         self.expand('@code{%s} @b{%s}' % (datatype, name))
         # If there are too many arguments, show them
-        for word in rest: self.expand(' ' + word)
+        for word in rest:
+            self.expand(f' {word}')
         #self.expand(' -- ' + category)
         self.write('\n<DD>')
         self.index('fn', name)
 
     def bgn_deftypevar(self, args):
-        self.bgn_deftypevr('Variable ' + args)
+        self.bgn_deftypevr(f'Variable {args}')
     end_deftypevar = end_deftypevr
     def do_deftypevarx(self, args):
-        self.do_deftypevrx('Variable ' + args)
+        self.do_deftypevrx(f'Variable {args}')
 
     # --- Ditto for object-oriented languages ---
 
@@ -1339,7 +1330,8 @@ class TexinfoParser:
         [category, classname, name], rest = words[:3], words[3:]
         self.expand('@b{%s}' % name)
         # If there are too many arguments, show them
-        for word in rest: self.expand(' ' + word)
+        for word in rest:
+            self.expand(f' {word}')
         #self.expand(' -- %s of @code{%s}' % (category, classname))
         self.write('\n<DD>')
         self.index('vr', '%s @r{on %s}' % (name, classname))
@@ -1361,16 +1353,17 @@ class TexinfoParser:
         words = splitwords(args, 3)
         [category, classname, name], rest = words[:3], words[3:]
         self.expand('@b{%s}' % name)
-        for word in rest: self.expand(' ' + makevar(word))
+        for word in rest:
+            self.expand(f' {makevar(word)}')
         #self.expand(' -- %s of @code{%s}' % (category, classname))
         self.write('\n<DD>')
         self.index('fn', '%s @r{on %s}' % (name, classname))
 
     def bgn_defmethod(self, args):
-        self.bgn_defop('Method ' + args)
+        self.bgn_defop(f'Method {args}')
     end_defmethod = end_defop
     def do_defmethodx(self, args):
-        self.do_defopx('Method ' + args)
+        self.do_defopx(f'Method {args}')
 
     # --- Ditto for data types ---
 
@@ -1385,7 +1378,8 @@ class TexinfoParser:
         words = splitwords(args, 2)
         [category, name], rest = words[:2], words[2:]
         self.expand('@b{%s}' % name)
-        for word in rest: self.expand(' ' + word)
+        for word in rest:
+            self.expand(f' {word}')
         #self.expand(' -- ' + category)
         self.write('\n<DD>')
         self.index('tp', name)
@@ -1437,13 +1431,13 @@ class TexinfoParser:
         if self.itemindex: self.index(self.itemindex, args)
         if self.itemarg:
             if self.itemarg[0] == '@' and self.itemarg[1] and \
-                            self.itemarg[1] in string.ascii_letters:
+                                self.itemarg[1] in string.ascii_letters:
                 args = self.itemarg + '{' + args + '}'
             else:
                 # some other character, e.g. '-'
-                args = self.itemarg + ' ' + args
+                args = f'{self.itemarg} {args}'
         if self.itemnumber is not None:
-            args = self.itemnumber + '. ' + args
+            args = f'{self.itemnumber}. {args}'
             self.itemnumber = increment(self.itemnumber)
         if self.stack and self.stack[-1] == 'table':
             self.write('<DT>')
@@ -1532,17 +1526,15 @@ class TexinfoParser:
 
     def resetindex(self):
         self.noncodeindices = ['cp']
-        self.indextitle = {}
-        self.indextitle['cp'] = 'Concept'
-        self.indextitle['fn'] = 'Function'
-        self.indextitle['ky'] = 'Keyword'
-        self.indextitle['pg'] = 'Program'
-        self.indextitle['tp'] = 'Type'
-        self.indextitle['vr'] = 'Variable'
-        #
-        self.whichindex = {}
-        for name in self.indextitle:
-            self.whichindex[name] = []
+        self.indextitle = {
+            'cp': 'Concept',
+            'fn': 'Function',
+            'ky': 'Keyword',
+            'pg': 'Program',
+            'tp': 'Type',
+            'vr': 'Variable',
+        }
+        self.whichindex = {name: [] for name in self.indextitle}
 
     def user_index(self, name, args):
         if name in self.whichindex:
@@ -1756,92 +1748,88 @@ class HTMLHelp:
             return
 
         # generate interesting filenames
-        resultfile   = self.helpbase + '.chm'
-        projectfile  = self.helpbase + '.hhp'
-        contentfile  = self.helpbase + '.hhc'
-        indexfile    = self.helpbase + '.hhk'
-
-        # generate a reasonable title
-        title        = self.helpbase
+        resultfile = f'{self.helpbase}.chm'
+        projectfile = f'{self.helpbase}.hhp'
+        contentfile = f'{self.helpbase}.hhc'
+        indexfile = f'{self.helpbase}.hhk'
 
         # get the default topic file
         (topname,topnext,topprev,topup,topfile) = self.nodelist[0]
         defaulttopic = topfile
 
+        title = self.helpbase
         # PROJECT FILE
         try:
-            fp = open(projectfile,'w')
-            print('[OPTIONS]', file=fp)
-            print('Auto Index=Yes', file=fp)
-            print('Binary TOC=No', file=fp)
-            print('Binary Index=Yes', file=fp)
-            print('Compatibility=1.1', file=fp)
-            print('Compiled file=' + resultfile + '', file=fp)
-            print('Contents file=' + contentfile + '', file=fp)
-            print('Default topic=' + defaulttopic + '', file=fp)
-            print('Error log file=ErrorLog.log', file=fp)
-            print('Index file=' + indexfile + '', file=fp)
-            print('Title=' + title + '', file=fp)
-            print('Display compile progress=Yes', file=fp)
-            print('Full-text search=Yes', file=fp)
-            print('Default window=main', file=fp)
-            print('', file=fp)
-            print('[WINDOWS]', file=fp)
-            print('main=,"' + contentfile + '","' + indexfile
-                        + '","","",,,,,0x23520,222,0x1046,[10,10,780,560],'
-                        '0xB0000,,,,,,0', file=fp)
-            print('', file=fp)
-            print('[FILES]', file=fp)
-            print('', file=fp)
-            self.dumpfiles(fp)
-            fp.close()
+            with open(projectfile,'w') as fp:
+                print('[OPTIONS]', file=fp)
+                print('Auto Index=Yes', file=fp)
+                print('Binary TOC=No', file=fp)
+                print('Binary Index=Yes', file=fp)
+                print('Compatibility=1.1', file=fp)
+                print(f'Compiled file={resultfile}', file=fp)
+                print(f'Contents file={contentfile}', file=fp)
+                print(f'Default topic={defaulttopic}', file=fp)
+                print('Error log file=ErrorLog.log', file=fp)
+                print(f'Index file={indexfile}', file=fp)
+                print(f'Title={title}', file=fp)
+                print('Display compile progress=Yes', file=fp)
+                print('Full-text search=Yes', file=fp)
+                print('Default window=main', file=fp)
+                print('', file=fp)
+                print('[WINDOWS]', file=fp)
+                print(
+                    f'main=,"{contentfile}","{indexfile}","","",,,,,0x23520,222,0x1046,[10,10,780,560],0xB0000,,,,,,0',
+                    file=fp,
+                )
+                print('', file=fp)
+                print('[FILES]', file=fp)
+                print('', file=fp)
+                self.dumpfiles(fp)
         except IOError as msg:
             print(projectfile, ':', msg)
             sys.exit(1)
 
         # CONTENT FILE
         try:
-            fp = open(contentfile,'w')
-            print('<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">', file=fp)
-            print('<!-- This file defines the table of contents -->', file=fp)
-            print('<HTML>', file=fp)
-            print('<HEAD>', file=fp)
-            print('<meta name="GENERATOR"'
-                        'content="Microsoft&reg; HTML Help Workshop 4.1">', file=fp)
-            print('<!-- Sitemap 1.0 -->', file=fp)
-            print('</HEAD>', file=fp)
-            print('<BODY>', file=fp)
-            print('   <OBJECT type="text/site properties">', file=fp)
-            print('     <param name="Window Styles" value="0x800025">', file=fp)
-            print('     <param name="comment" value="title:">', file=fp)
-            print('     <param name="comment" value="base:">', file=fp)
-            print('   </OBJECT>', file=fp)
-            self.dumpnodes(fp)
-            print('</BODY>', file=fp)
-            print('</HTML>', file=fp)
-            fp.close()
+            with open(contentfile,'w') as fp:
+                print('<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">', file=fp)
+                print('<!-- This file defines the table of contents -->', file=fp)
+                print('<HTML>', file=fp)
+                print('<HEAD>', file=fp)
+                print('<meta name="GENERATOR"'
+                            'content="Microsoft&reg; HTML Help Workshop 4.1">', file=fp)
+                print('<!-- Sitemap 1.0 -->', file=fp)
+                print('</HEAD>', file=fp)
+                print('<BODY>', file=fp)
+                print('   <OBJECT type="text/site properties">', file=fp)
+                print('     <param name="Window Styles" value="0x800025">', file=fp)
+                print('     <param name="comment" value="title:">', file=fp)
+                print('     <param name="comment" value="base:">', file=fp)
+                print('   </OBJECT>', file=fp)
+                self.dumpnodes(fp)
+                print('</BODY>', file=fp)
+                print('</HTML>', file=fp)
         except IOError as msg:
             print(contentfile, ':', msg)
             sys.exit(1)
 
         # INDEX FILE
         try:
-            fp = open(indexfile  ,'w')
-            print('<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">', file=fp)
-            print('<!-- This file defines the index -->', file=fp)
-            print('<HTML>', file=fp)
-            print('<HEAD>', file=fp)
-            print('<meta name="GENERATOR"'
-                        'content="Microsoft&reg; HTML Help Workshop 4.1">', file=fp)
-            print('<!-- Sitemap 1.0 -->', file=fp)
-            print('</HEAD>', file=fp)
-            print('<BODY>', file=fp)
-            print('<OBJECT type="text/site properties">', file=fp)
-            print('</OBJECT>', file=fp)
-            self.dumpindex(fp)
-            print('</BODY>', file=fp)
-            print('</HTML>', file=fp)
-            fp.close()
+            with open(indexfile  ,'w') as fp:
+                print('<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">', file=fp)
+                print('<!-- This file defines the index -->', file=fp)
+                print('<HTML>', file=fp)
+                print('<HEAD>', file=fp)
+                print('<meta name="GENERATOR"'
+                            'content="Microsoft&reg; HTML Help Workshop 4.1">', file=fp)
+                print('<!-- Sitemap 1.0 -->', file=fp)
+                print('</HEAD>', file=fp)
+                print('<BODY>', file=fp)
+                print('<OBJECT type="text/site properties">', file=fp)
+                print('</OBJECT>', file=fp)
+                self.dumpindex(fp)
+                print('</BODY>', file=fp)
+                print('</HTML>', file=fp)
         except IOError as msg:
             print(indexfile  , ':', msg)
             sys.exit(1)
@@ -1863,29 +1851,30 @@ class HTMLHelp:
         print('</UL>', file=outfile)
 
     def dumpnode(self, node, indent=0, outfile=sys.stdout):
-        if node:
-            # Retrieve info for this node
-            (nodename,next,prev,up,filename) = node
-            self.current = nodename
+        if not node:
+            return
+        # Retrieve info for this node
+        (nodename,next,prev,up,filename) = node
+        self.current = nodename
 
-            # Have we been dumped already?
-            if nodename in self.dumped:
-                return
-            self.dumped[nodename] = 1
+        # Have we been dumped already?
+        if nodename in self.dumped:
+            return
+        self.dumped[nodename] = 1
 
-            # Print info for this node
-            print(' '*indent, end=' ', file=outfile)
-            print('<LI><OBJECT type="text/sitemap">', end=' ', file=outfile)
-            print('<param name="Name" value="' + nodename +'">', end=' ', file=outfile)
-            print('<param name="Local" value="'+ filename +'">', end=' ', file=outfile)
-            print('</OBJECT>', file=outfile)
+        # Print info for this node
+        print(' '*indent, end=' ', file=outfile)
+        print('<LI><OBJECT type="text/sitemap">', end=' ', file=outfile)
+        print(f'<param name="Name" value="{nodename}">', end=' ', file=outfile)
+        print(f'<param name="Local" value="{filename}">', end=' ', file=outfile)
+        print('</OBJECT>', file=outfile)
 
-            # Does this node have menu items?
-            try:
-                menu = self.menudict[nodename]
-                self.dumpmenu(menu,indent+2,outfile)
-            except KeyError:
-                pass
+        # Does this node have menu items?
+        try:
+            menu = self.menudict[nodename]
+            self.dumpmenu(menu,indent+2,outfile)
+        except KeyError:
+            pass
 
     def dumpmenu(self, menu, indent=0, outfile=sys.stdout):
         if menu:
@@ -1904,9 +1893,7 @@ class HTMLHelp:
         try:
             index = self.nodeindex[nodename]
             return self.nodelist[index]
-        except KeyError:
-            return None
-        except IndexError:
+        except (KeyError, IndexError):
             return None
 
     # (args,nodename) == (key,location)
@@ -1915,10 +1902,10 @@ class HTMLHelp:
         for (key,location) in self.indexlist:
             key = self.codeexpand(key)
             location = makefile(location)
-            location = self.dirname + '/' + location
+            location = f'{self.dirname}/{location}'
             print('<LI><OBJECT type="text/sitemap">', end=' ', file=outfile)
-            print('<param name="Name" value="' + key + '">', end=' ', file=outfile)
-            print('<param name="Local" value="' + location + '">', end=' ', file=outfile)
+            print(f'<param name="Name" value="{key}">', end=' ', file=outfile)
+            print(f'<param name="Local" value="{location}">', end=' ', file=outfile)
             print('</OBJECT>', file=outfile)
         print('</UL>', file=outfile)
 
@@ -1943,7 +1930,8 @@ def splitwords(str, minlength):
     i = 0
     n = len(str)
     while i < n:
-        while i < n and str[i] in ' \t\n': i = i+1
+        while i < n and str[i] in ' \t\n':
+            i += 1
         if i >= n: break
         start = i
         i = findwordend(str, i, n)
@@ -1972,7 +1960,7 @@ def findwordend(str, i, n):
 # Convert a node name into a file name
 def makefile(nodename):
     nodename = nodename.strip()
-    return fixfunnychars(nodename) + '.html'
+    return f'{fixfunnychars(nodename)}.html'
 
 
 # Characters that are perfectly safe in filenames and hyperlinks
@@ -1989,7 +1977,7 @@ def fixfunnychars(addr):
         if c not in goodchars:
             c = '-'
             addr = addr[:i] + c + addr[i+1:]
-        i = i + len(c)
+        i += len(c)
     return addr
 
 

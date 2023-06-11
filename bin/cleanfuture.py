@@ -116,20 +116,18 @@ def check(file):
                 print("-- change to:")
                 print(line, end=' ')
         if not dryrun:
-            bak = file + ".bak"
+            bak = f"{file}.bak"
             if os.path.exists(bak):
                 os.remove(bak)
             os.rename(file, bak)
             if verbose:
                 print("renamed", file, "to", bak)
-            g = open(file, "w")
-            ff.write(g)
-            g.close()
+            with open(file, "w") as g:
+                ff.write(g)
             if verbose:
                 print("wrote new", file)
-    else:
-        if verbose:
-            print("unchanged.")
+    elif verbose:
+        print("unchanged.")
 
 class FutureFinder:
 
@@ -179,16 +177,16 @@ class FutureFinder:
             while type in (COMMENT, NL, NEWLINE):
                 type, token, (srow, scol), (erow, ecol), line = get()
 
-            if not (type is NAME and token == "from"):
+            if type is not NAME or token != "from":
                 break
             startline = srow - 1    # tokenize is one-based
             type, token, (srow, scol), (erow, ecol), line = get()
 
-            if not (type is NAME and token == "__future__"):
+            if type is not NAME or token != "__future__":
                 break
             type, token, (srow, scol), (erow, ecol), line = get()
 
-            if not (type is NAME and token == "import"):
+            if type is not NAME or token != "import":
                 break
             type, token, (srow, scol), (erow, ecol), line = get()
 
@@ -198,7 +196,7 @@ class FutureFinder:
                 features.append(token)
                 type, token, (srow, scol), (erow, ecol), line = get()
 
-                if not (type is OP and token == ','):
+                if type is not OP or token != ',':
                     break
                 type, token, (srow, scol), (erow, ecol), line = get()
 
@@ -226,33 +224,26 @@ class FutureFinder:
                     okfeatures.append(f)
                 else:
                     released = object.getMandatoryRelease()
-                    if released is None or released <= sys.version_info:
-                        # Withdrawn or obsolete.
-                        pass
-                    else:
+                    if released is not None and released > sys.version_info:
                         okfeatures.append(f)
 
             # Rewrite the line if at least one future-feature is obsolete.
             if len(okfeatures) < len(features):
-                if len(okfeatures) == 0:
+                if not okfeatures:
                     line = None
                 else:
-                    line = "from __future__ import "
-                    line += ', '.join(okfeatures)
+                    line = "from __future__ import " + ', '.join(okfeatures)
                     if comment is not None:
-                        line += ' ' + comment
+                        line += f' {comment}'
                     line += '\n'
                 changed.append((startline, endline, line))
 
-            # Loop back for more future statements.
+                # Loop back for more future statements.
 
         return changed
 
     def gettherest(self):
-        if self.ateof:
-            self.therest = ''
-        else:
-            self.therest = self.f.read()
+        self.therest = '' if self.ateof else self.f.read()
 
     def write(self, f):
         changed = self.changed

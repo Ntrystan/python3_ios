@@ -37,16 +37,18 @@ import subprocess
 
 
 def propfiles(root, fn):
-    default = os.path.join(root, ".svn", "props", fn + ".svn-work")
+    default = os.path.join(root, ".svn", "props", f"{fn}.svn-work")
     try:
         format = int(open(os.path.join(root, ".svn", "format")).read().strip())
     except IOError:
         return []
-    if format in (8, 9):
+    if format in {8, 9}:
         # In version 8 and 9, committed props are stored in prop-base, local
         # modifications in props
-        return [os.path.join(root, ".svn", "prop-base", fn + ".svn-base"),
-                os.path.join(root, ".svn", "props", fn + ".svn-work")]
+        return [
+            os.path.join(root, ".svn", "prop-base", f"{fn}.svn-base"),
+            os.path.join(root, ".svn", "props", f"{fn}.svn-work"),
+        ]
     raise ValueError("Unknown repository format")
 
 
@@ -85,7 +87,7 @@ def proplist(root, fn):
 
 
 def set_eol_native(path):
-    cmd = 'svn propset svn:eol-style native "{}"'.format(path)
+    cmd = f'svn propset svn:eol-style native "{path}"'
     propset = subprocess.Popen(cmd, shell=True)
     propset.wait()
 

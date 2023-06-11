@@ -82,10 +82,7 @@ def common_instructions(profile):
       (opcode, opname, # of occurrences)
 
     """
-    if has_pairs(profile) and profile:
-        inst_list = profile[-1]
-    else:
-        inst_list = profile
+    inst_list = profile[-1] if has_pairs(profile) and profile else profile
     result = [(op, opcode.opname[op], count)
               for op, count in enumerate(inst_list)
               if count > 0]

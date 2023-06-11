@@ -80,7 +80,7 @@ class TestBmpReference(PillowTestCase):
             if name in file_map:
                 return os.path.join(base, 'html', file_map[name])
             name = os.path.splitext(name)[0]
-            return os.path.join(base, 'html', "%s.png" % name)
+            return os.path.join(base, 'html', f"{name}.png")
 
         for f in self.get_files('g'):
             try:
@@ -102,4 +102,4 @@ class TestBmpReference(PillowTestCase):
                                os.path.join(base, 'g', 'pal8rle.bmp'),
                                os.path.join(base, 'g', 'pal4rle.bmp'))
                 if f not in unsupported:
-                    self.fail("Unsupported Image %s: %s" % (f, msg))
+                    self.fail(f"Unsupported Image {f}: {msg}")

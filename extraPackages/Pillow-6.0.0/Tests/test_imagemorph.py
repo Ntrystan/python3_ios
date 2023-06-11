@@ -63,7 +63,7 @@ class MorphTests(PillowTestCase):
                 'erosion4', 'erosion8', 'edge'):
             lb = ImageMorph.LutBuilder(op_name=op)
             lut = lb.build_lut()
-            with open('Tests/images/%s.lut' % op, 'wb') as f:
+            with open(f'Tests/images/{op}.lut', 'wb') as f:
                 f.write(lut)
 
     # create_lut()
@@ -75,7 +75,7 @@ class MorphTests(PillowTestCase):
             self.assertIsNone(lb.get_lut())
 
             lut = lb.build_lut()
-            with open('Tests/images/%s.lut' % op, 'rb') as f:
+            with open(f'Tests/images/{op}.lut', 'rb') as f:
                 self.assertEqual(lut, bytearray(f.read()))
 
     def test_no_operator_loaded(self):

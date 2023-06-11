@@ -36,10 +36,7 @@ decl_re = re.compile(rb'^[ \t\f]*#.*?coding[:=][ \t]*([-\w.]+)')
 blank_re = re.compile(rb'^[ \t\f]*(?:[#\r\n]|$)')
 
 def get_declaration(line):
-    match = decl_re.match(line)
-    if match:
-        return match.group(1)
-    return b''
+    return match.group(1) if (match := decl_re.match(line)) else b''
 
 def has_correct_encoding(text, codec):
     try:
@@ -67,10 +64,7 @@ def needs_declaration(fullpath):
         # check the whole file for non utf-8 characters
         rest = infile.read()
 
-    if has_correct_encoding(line1+line2+rest, "utf-8"):
-        return False
-
-    return True
+    return not has_correct_encoding(line1+line2+rest, "utf-8")
 
 
 usage = """Usage: %s [-cd] paths...
@@ -101,7 +95,6 @@ if __name__ == '__main__':
 
     for fullpath in pysource.walk_python_files(args, is_python):
         if debug:
-            print("Testing for coding: %s" % fullpath)
-        result = needs_declaration(fullpath)
-        if result:
+            print(f"Testing for coding: {fullpath}")
+        if result := needs_declaration(fullpath):
             print(fullpath)

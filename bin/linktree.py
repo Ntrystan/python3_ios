@@ -28,22 +28,22 @@ def main():
         link = LINK
         link_may_fail = 0
     if not os.path.isdir(oldtree):
-        print(oldtree + ': not a directory')
+        print(f'{oldtree}: not a directory')
         return 1
     try:
         os.mkdir(newtree, 0o777)
     except OSError as msg:
-        print(newtree + ': cannot mkdir:', msg)
+        print(f'{newtree}: cannot mkdir:', msg)
         return 1
     linkname = os.path.join(newtree, link)
     try:
         os.symlink(os.path.join(os.pardir, oldtree), linkname)
     except OSError as msg:
         if not link_may_fail:
-            print(linkname + ': cannot symlink:', msg)
+            print(f'{linkname}: cannot symlink:', msg)
             return 1
         else:
-            print(linkname + ': warning: cannot symlink:', msg)
+            print(f'{linkname}: warning: cannot symlink:', msg)
     linknames(oldtree, newtree, link)
     return 0
 
@@ -52,7 +52,7 @@ def linknames(old, new, link):
     try:
         names = os.listdir(old)
     except OSError as msg:
-        print(old + ': warning: cannot listdir:', msg)
+        print(f'{old}: warning: cannot listdir:', msg)
         return
     for name in names:
         if name not in (os.curdir, os.pardir):

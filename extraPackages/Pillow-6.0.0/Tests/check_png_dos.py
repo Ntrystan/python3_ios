@@ -41,8 +41,8 @@ class TestPngDos(PillowTestCase):
         info = PngImagePlugin.PngInfo()
 
         for x in range(64):
-            info.add_text('t%s' % x, compressed_data, zip=True)
-            info.add_itxt('i%s' % x, compressed_data, zip=True)
+            info.add_text(f't{x}', compressed_data, zip=True)
+            info.add_itxt(f'i{x}', compressed_data, zip=True)
 
         b = BytesIO()
         im.save(b, 'PNG', pnginfo=info)
@@ -54,9 +54,7 @@ class TestPngDos(PillowTestCase):
             self.assertIn("Too much memory", msg)
             return
 
-        total_len = 0
-        for txt in im2.text.values():
-            total_len += len(txt)
+        total_len = sum(len(txt) for txt in im2.text.values())
         self.assertLess(total_len, 64*1024*1024,
                         "Total text chunks greater than 64M")
 

@@ -24,14 +24,14 @@ SRCDIR = sysconfig.get_config_var('srcdir')
 
 def n_files_str(count):
     """Return 'N file(s)' with the proper plurality on 'file'."""
-    return "{} file{}".format(count, "s" if count != 1 else "")
+    return f'{count} file{"s" if count != 1 else ""}'
 
 
 def status(message, modal=False, info=None):
     """Decorator to output status info to stdout."""
     def decorated_fxn(fxn):
         def call_fxn(*args, **kwargs):
-            sys.stdout.write(message + ' ... ')
+            sys.stdout.write(f'{message} ... ')
             sys.stdout.flush()
             result = fxn(*args, **kwargs)
             if not modal and not info:
@@ -41,7 +41,9 @@ def status(message, modal=False, info=None):
             else:
                 print("yes" if result else "NO")
             return result
+
         return call_fxn
+
     return decorated_fxn
 
 
@@ -93,7 +95,7 @@ def get_base_branch():
         # Not on a git PR branch, so there's no base branch
         return None
     upstream_remote = get_git_upstream_remote()
-    return upstream_remote + "/" + base_branch
+    return f"{upstream_remote}/{base_branch}"
 
 
 @status("Getting the list of files that have been added/changed",
@@ -113,7 +115,7 @@ def changed_files(base_branch=None):
         #  directory = normal git checkout/clone
         #  file = git worktree directory
         if base_branch:
-            cmd = 'git diff --name-status ' + base_branch
+            cmd = f'git diff --name-status {base_branch}'
         else:
             cmd = 'git status --porcelain'
         filenames = []
@@ -148,20 +150,20 @@ def report_modified_files(file_paths):
     count = len(file_paths)
     if count == 0:
         return n_files_str(count)
-    else:
-        lines = ["{}:".format(n_files_str(count))]
-        for path in file_paths:
-            lines.append("  {}".format(path))
-        return "\n".join(lines)
+    lines = [f"{n_files_str(count)}:"]
+    lines.extend(f"  {path}" for path in file_paths)
+    return "\n".join(lines)
 
 
 @status("Fixing Python file whitespace", info=report_modified_files)
 def normalize_whitespace(file_paths):
     """Make sure that the whitespace for .py files have been normalized."""
     reindent.makebackup = False  # No need to create backups.
-    fixed = [path for path in file_paths if path.endswith('.py') and
-             reindent.check(os.path.join(SRCDIR, path))]
-    return fixed
+    return [
+        path
+        for path in file_paths
+        if path.endswith('.py') and reindent.check(os.path.join(SRCDIR, path))
+    ]
 
 
 @status("Fixing C file whitespace", info=report_modified_files)
@@ -190,12 +192,12 @@ def normalize_docs_whitespace(file_paths):
                 lines = f.readlines()
             new_lines = [ws_re.sub(br'\1', line) for line in lines]
             if new_lines != lines:
-                shutil.copyfile(abspath, abspath + '.bak')
+                shutil.copyfile(abspath, f'{abspath}.bak')
                 with open(abspath, 'wb') as f:
                     f.writelines(new_lines)
                 fixed.append(path)
         except Exception as err:
-            print('Cannot fix %s: %s' % (path, err))
+            print(f'Cannot fix {path}: {err}')
     return fixed
 
 
@@ -283,7 +285,7 @@ def main():
     if python_files or c_files:
         end = " and check for refleaks?" if c_files else "?"
         print()
-        print("Did you run the test suite" + end)
+        print(f"Did you run the test suite{end}")
 
 
 if __name__ == '__main__':

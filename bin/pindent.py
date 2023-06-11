@@ -142,10 +142,11 @@ class PythonIndenter:
     def getline(self):
         line = self.readline()
         while line[-2:] == '\\\n':
-            line2 = self.readline()
-            if not line2: break
-            # end if
-            line += line2
+            if line2 := self.readline():
+                # end if
+                line += line2
+            else:
+                break
         # end while
         return line
     # end def getline
@@ -165,9 +166,7 @@ class PythonIndenter:
         while True:
             line = self.getline()
             if not line: break      # EOF
-            # end if
-            m = self.endprog.match(line)
-            if m:
+            if m := self.endprog.match(line):
                 kw = 'end'
                 kw2 = m.group('kw')
                 if not stack:
@@ -177,9 +176,7 @@ class PythonIndenter:
                 # end if
                 self.putline(line, len(stack))
                 continue
-            # end if
-            m = self.kwprog.match(line)
-            if m:
+            if m := self.kwprog.match(line):
                 kw = m.group('kw')
                 if kw in start:
                     self.putline(line, len(stack))
@@ -191,7 +188,6 @@ class PythonIndenter:
                     kwa, kwb = stack[-1]
                     stack[-1] = kwa, kw
                     continue
-                # end if
             # end if
             self.putline(line, len(stack))
         # end while
@@ -214,13 +210,10 @@ class PythonIndenter:
             if m:
                 end_counter += 1
                 continue
-            # end if
-            m = self.kwprog.match(line)
-            if m:
+            if m := self.kwprog.match(line):
                 kw = m.group('kw')
                 if kw in start:
                     begin_counter += 1
-                # end if
             # end if
             self.write(line)
         # end while
@@ -238,40 +231,32 @@ class PythonIndenter:
         while True:
             line = self.getline()
             i = self.wsprog.match(line).end()
-            m = self.endprog.match(line)
-            if m:
+            if m := self.endprog.match(line):
                 thiskw = 'end'
                 endkw = m.group('kw')
                 thisid = m.group('id')
-            else:
-                m = self.kwprog.match(line)
-                if m:
-                    thiskw = m.group('kw')
-                    if thiskw not in next:
-                        thiskw = ''
-                    # end if
-                    if thiskw in ('def', 'class'):
-                        thisid = m.group('id')
-                    else:
-                        thisid = ''
-                    # end if
-                elif line[i:i+1] in ('\n', '#'):
-                    todo.append(line)
-                    continue
-                else:
+            elif m := self.kwprog.match(line):
+                thiskw = m.group('kw')
+                if thiskw not in next:
                     thiskw = ''
-                # end if
+                    # end if
+                thisid = m.group('id') if thiskw in ('def', 'class') else ''
+            elif line[i:i+1] in ('\n', '#'):
+                todo.append(line)
+                continue
+            else:
+                thiskw = ''
             # end if
             indentws = line[:i]
             indent = len(indentws.expandtabs(self.tabsize))
             current = len(currentws.expandtabs(self.tabsize))
             while indent < current:
                 if firstkw:
-                    if topid:
-                        s = '# end %s %s\n' % (
-                                firstkw, topid)
-                    else:
-                        s = '# end %s\n' % firstkw
+                    s = (
+                        '# end %s %s\n' % (firstkw, topid)
+                        if topid
+                        else '# end %s\n' % firstkw
+                    )
                     # end if
                     self.write(currentws + s)
                     firstkw = lastkw = ''
@@ -286,15 +271,15 @@ class PythonIndenter:
                     # end if
                     firstkw = lastkw = ''
                 elif not thiskw or thiskw in start:
-                    if topid:
-                        s = '# end %s %s\n' % (
-                                firstkw, topid)
-                    else:
-                        s = '# end %s\n' % firstkw
+                    s = (
+                        '# end %s %s\n' % (firstkw, topid)
+                        if topid
+                        else '# end %s\n' % firstkw
+                    )
                     # end if
                     self.write(currentws + s)
                     firstkw = lastkw = topid = ''
-                # end if
+                        # end if
             # end if
             if indent > current:
                 stack.append((currentws, firstkw, lastkw, topid))
@@ -303,7 +288,7 @@ class PythonIndenter:
                     thiskw = ''
                 # end if
                 currentws, firstkw, lastkw, topid = \
-                          indentws, thiskw, thiskw, thisid
+                              indentws, thiskw, thiskw, thisid
             # end if
             if thiskw:
                 if thiskw in start:
@@ -372,7 +357,7 @@ def reformat_string(source, stepsize = STEPSIZE, tabsize = TABSIZE, expandtabs =
 
 def make_backup(filename):
     import os, os.path
-    backup = filename + '~'
+    backup = f'{filename}~'
     if os.path.lexists(backup):
         try:
             os.remove(backup)
@@ -445,7 +430,10 @@ the program acts as a filter (reads stdin, writes stdout).
 """ % vars()
 
 def error_both(op1, op2):
-    sys.stderr.write('Error: You can not specify both '+op1+' and -'+op2[0]+' at the same time\n')
+    sys.stderr.write(
+        f'Error: You can not specify both {op1} and -{op2[0]}'
+        + ' at the same time\n'
+    )
     sys.stderr.write(usage)
     sys.exit(2)
 # end def error_both
@@ -491,10 +479,10 @@ def test():
         sys.exit(2)
     # end if
     if not args or args == ['-']:
-        action = eval(action + '_filter')
+        action = eval(f'{action}_filter')
         action(sys.stdin, sys.stdout, stepsize, tabsize, expandtabs)
     else:
-        action = eval(action + '_file')
+        action = eval(f'{action}_file')
         for filename in args:
             action(filename, stepsize, tabsize, expandtabs)
         # end for

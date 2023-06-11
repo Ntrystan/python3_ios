@@ -29,9 +29,9 @@ def main(args):
             pass
     for arg in args:
         pat = re.compile(arg, re.I)
-        matches = [(y,x) for (x,y) in unicode_names
-                   if pat.search(y) is not None]
-        if matches:
+        if matches := [
+            (y, x) for (x, y) in unicode_names if pat.search(y) is not None
+        ]:
             print("***", arg, "matches", "***")
             for match in matches:
                 print("%s (%d)" % match)
